@@ -1,0 +1,40 @@
+---
+title: Introduce yourself
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome. Tell us who you are and what you are building with the factory.
+
+        There is no expectation here. A sentence is enough.
+  - type: textarea
+    id: who
+    attributes:
+      label: Who are you?
+      description: A name, a handle, or however you would like to be addressed.
+      placeholder: I maintain a small tool that...
+    validations:
+      required: true
+  - type: textarea
+    id: building
+    attributes:
+      label: What are you building with it?
+      description: The task, the pipeline, or the experiment.
+      placeholder: I am hydrating tickets for a documentation pipeline...
+    validations:
+      required: false
+  - type: textarea
+    id: help
+    attributes:
+      label: What would you like help with?
+      description: A question, a blocker, or an idea you want to think through.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you post
+      options:
+        - label: I did not include credentials, tokens, or private ticket data.
+          required: true

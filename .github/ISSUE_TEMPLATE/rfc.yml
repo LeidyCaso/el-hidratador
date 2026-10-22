@@ -1,0 +1,72 @@
+---
+name: Request for comments
+about: Propose a change to the contract or the architecture before writing code
+title: "[RFC]: "
+labels: ["rfc", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        An RFC is a proposal that changes a guarantee, a contract, or a boundary. It is written
+        before the code, so that the reasoning survives the implementation.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is not possible today, and why it matters.
+      placeholder: The handoff payload is described in prose, so the other side of the handoff
+        cannot validate what it receives.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: What should be true instead. Write it so a reader can check the code against
+        the sentence.
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Which contract or guarantee does this change?
+      description: Name it. If it changes none, say so.
+      placeholder: It adds a published schema for the handoff payload. It does not change the
+        acceptance gate, the eligibility rules, or the measurement rules.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else was on the table, and why it was not chosen.
+    validations:
+      required: false
+  - type: textarea
+    id: unchanged
+    attributes:
+      label: What stays the same?
+      description: The house rules are eligibility is not authorization, execution is not
+        acceptance, and declared is not measured. Say which of them this proposal leaves alone.
+    validations:
+      required: false
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration and rollback
+      description: How existing state is handled, and how to undo the change.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you post
+      options:
+        - label: I searched the existing issues and discussions.
+          required: true
+        - label: This proposal does not make eligibility look like authorization.
+          required: true
+        - label: This proposal does not make finishing look like acceptance.
+          required: true
+        - label: I did not include credentials, tokens, or private ticket data.
+          required: true

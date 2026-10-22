@@ -1,0 +1,65 @@
+name: Changelog
+
+on:
+  pull_request:
+    paths:
+      - "el_hidratador/**"
+      - "tests/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    name: the changelog records the change
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check that the changelog was updated
+        id: changelog
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE}" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --quiet --no-tags origin "${BASE}"
+          changed="$(git diff --name-only "origin/${BASE}...HEAD")"
+          echo "Files changed:"
+          echo "${changed}"
+          if echo "${changed}" | grep -qx "CHANGELOG.md"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Explain what is missing
+        if: steps.changelog.outputs.changed != 'true'
+        run: |
+          {
+            echo "## The changelog was not updated"
+            echo
+            echo "This pull request changes the code but not \`CHANGELOG.md\`."
+            echo "The changelog is written for the person who upgrades, so it has to say"
+            echo "what changed for them."
+            echo
+            echo "Add an entry under \`## [Unreleased]\`, or say here why the change does"
+            echo "not affect anyone who is not running the source."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=Changelog missing::CHANGELOG.md was not updated in this pull request."
+          exit 1

@@ -1,0 +1,45 @@
+{
+  "name": "El Hidratador",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.13-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/shellcheck/stable:1": {},
+    "ghcr.io/devcontainers/features/rust:1": {}
+  },
+  "onCreateCommand": "echo 'The ledger lives on the host by default: set HIDRATADOR_DB if you want it inside the container.'",
+  "postCreateCommand": "python3 -m pip install --upgrade pip && python3 -m pip install -e \".[dev]\" && python3 -m pip install yamllint && make help",
+  "remoteUser": "vscode",
+  "forwardPorts": [7878],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "redhat.vscode-yaml",
+        "davidanson.vscode-markdownlint",
+        "timonwong.shellcheck",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": true,
+        "python.testing.pytestArgs": ["tests"],
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+          }
+        },
+        "[markdown]": {
+          "editor.defaultFormatter": "davidanson.vscode-markdownlint"
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true
+      }
+    }
+  }
+}

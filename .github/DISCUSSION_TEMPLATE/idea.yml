@@ -1,0 +1,62 @@
+---
+title: Propose an idea
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        An idea is a proposal, not a decision. Describe the problem and the outcome you want, and
+        let the discussion settle the shape before anyone writes code.
+
+        If the shape is already known and the change touches a contract, open a
+        [request for comments](https://github.com/hamanakam1/el-hidratador/issues/new?template=rfc.yml)
+        instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is the problem?
+      description: The situation that makes you want this. Not the solution.
+      placeholder: When a worker resumes a task, it cannot tell which context it already read...
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What would be true when this is done?
+      description: An observable outcome, not a feature name.
+      placeholder: A resumed worker does not re-read context it already consumed.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried?
+      description: Workarounds, experiments, or a rejected approach.
+    validations:
+      required: false
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Which layer does this touch?
+      options:
+        - Core ledger
+        - Context expansion
+        - Execution DAG
+        - Sandbox
+        - Hardware routing
+        - GitHub sync
+        - Dashboard preview
+        - Command line interface
+        - Documentation
+        - Build and release
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you post
+      options:
+        - label: I searched the existing issues and discussions.
+          required: true
+        - label: I did not include credentials, tokens, or private ticket data.
+          required: true

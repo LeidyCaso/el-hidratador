@@ -1,0 +1,61 @@
+name: Wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/wiki/**"]
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wiki-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: publish the wiki pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check whether the wiki repository exists
+        id: exists
+        run: |
+          set -euo pipefail
+          url="git@github.com:${GITHUB_REPOSITORY}.wiki.git"
+          if git ls-remote "$url" >/dev/null 2>&1; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Explain that the first wiki page has to be created once
+        if: steps.exists.outputs.present != 'true'
+        run: |
+          {
+            echo "## The wiki is not initialized yet"
+            echo
+            echo "GitHub creates a repository's wiki the first time a page is added through"
+            echo "the web interface. Create the \`Home\` page once, and this workflow will"
+            echo "publish the pages in \`docs/wiki/\` from then on."
+            echo
+            echo "  https://github.com/${GITHUB_REPOSITORY}/wiki/_new"
+            echo
+            echo "The pages are in the repository under \`docs/wiki/\` and are reviewed there."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish the pages
+        if: steps.exists.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          ./scripts/publish_wiki.sh "${GITHUB_REPOSITORY}"

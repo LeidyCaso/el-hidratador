@@ -1,0 +1,55 @@
+---
+name: Small task
+about: Pick up a well-scoped piece of work
+title: "[Small]: "
+labels: ["good first issue", "help wanted", "size/S", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A small task is one area, one outcome, and no surprises. It is a good way to learn the
+        codebase: the scope is narrow enough to finish and specific enough to be reviewed.
+
+        If you are not sure whether something is small, say so in the comments and a maintainer
+        will tell you.
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you build?
+      description: The change, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: What does "done" look like?
+      description: The observable outcome. A reviewer should be able to check it.
+      placeholder: The command exists, prints the state of the store, and a test covers the empty
+        case and the populated case.
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Which files or commands are involved?
+      description: The places you expect to touch, and the commands that prove it.
+    validations:
+      required: false
+  - type: textarea
+    id: verify
+    attributes:
+      label: How would you verify it?
+      description: The exact command and the output you expect to see.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you post
+      options:
+        - label: The change is scoped to one area.
+          required: true
+        - label: I did not include credentials, tokens, or private ticket data.
+          required: true
+        - label: I read the contributing guide.
+          required: false

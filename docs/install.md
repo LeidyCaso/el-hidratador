@@ -101,8 +101,14 @@ The container image is Linux only.
 
 ## Path 4 — the devcontainer
 
-The repository does not ship a `.devcontainer/` directory, so there is no devcontainer to open
-today. If you want one, add it to your own fork. A devcontainers base image is a working base:
+The repository ships a devcontainer, so there is nothing to install by hand. Open the project in
+your editor and choose "Reopen in Container", or from the command line:
+
+```bash
+devcontainer open .
+```
+
+The container image carries Python 3.13, the `gh` CLI, ShellCheck, and the project dependencies:
 
 ```text
 .devcontainer/devcontainer.json
@@ -111,13 +117,12 @@ today. If you want one, add it to your own fork. A devcontainers base image is a
 ```json
 {
   "name": "El Hidratador",
-  "image": "mcr.microsoft.com/devcontainers/python:3.12",
-  "postCreateCommand": "python3 -m pip install -e \".[dev]\"",
-  "customizations": {
-    "vscode": {
-      "extensions": ["ms-python.python", "charliermarsh.ruff"]
-    }
-  }
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.13-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/shellcheck/stable:1": {}
+  },
+  "postCreateCommand": "python3 -m pip install --upgrade pip && python3 -m pip install -e \".[dev]\" && python3 -m pip install yamllint && make help"
 }
 ```
 

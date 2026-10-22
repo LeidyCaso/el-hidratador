@@ -52,17 +52,12 @@ jobs:
           push-to-registry: false
 
       - name: Generate an SBOM for the distribution
+        # The action uploads the SBOM as a workflow artifact under the name
+        # given here, so there is no second upload step to conflict with it.
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: dist
           format: spdx-json
           output-file: sbom.spdx.json
           artifact-name: sbom-${{ inputs.tag }}
-
-      - name: Upload the SBOM
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: sbom-${{ inputs.tag }}
-          path: sbom.spdx.json
-          if-no-files-found: error
-          retention-days: 90
+          upload-artifact: true

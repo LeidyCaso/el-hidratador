@@ -1,0 +1,105 @@
+{
+  "$id": "https://hamanakam1.github.io/el-hidratador/schema/manifest.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "Published by El Hidratador 1.0.0. See the repository for the full contract.",
+  "properties": {
+    "acceptance": {
+      "type": "string"
+    },
+    "edges": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "execution_authorized": {
+      "const": false
+    },
+    "manifest_hash": {
+      "pattern": "^[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "next_node": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nodes": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "order": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "tests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "order"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "objective": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "string"
+    },
+    "scope": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "task_id": {
+      "description": "Ticket identifier, for example M-1001.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "nodes",
+    "execution_authorized",
+    "provenance"
+  ],
+  "title": "El Hidratador manifest",
+  "type": "object"
+}

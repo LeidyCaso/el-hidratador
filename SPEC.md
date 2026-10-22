@@ -456,6 +456,10 @@ This blueprint is implemented in `el_hidratador/`:
 | Local dashboard preview | `dashboard.py` | Implemented (loopback only) |
 | Ticket file storage | `tickets.py` | Implemented |
 | JSON-first CLI | `cli.py` | Implemented |
+| Published contract (JSON Schema + validator) | `schema.py` | Implemented |
+| Event-log replay | `replay.py` | Implemented |
+| Environment diagnosis | `doctor.py` | Implemented |
+| Narrated demonstration | `demo.py` | Implemented |
 
 Not yet implemented, and deliberately so:
 

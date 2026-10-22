@@ -40,6 +40,132 @@ if it does not exist.
 
 ---
 
+## Onboarding and diagnostics
+
+These commands exist so that a newcomer, or a machine that has been away for a week, can find out
+what is going on without reading the source.
+
+### `doctor`
+
+Check whether this machine is ready. The checks report; they never repair anything.
+
+```bash
+hidratador doctor
+```
+
+```json
+{
+  "checks": [
+    {"name": "python", "status": "ok", "detail": "Python 3.13.1"},
+    {"name": "sqlite", "status": "ok", "detail": "SQLite 3.45.1"},
+    {"name": "ledger", "status": "ok", "detail": "/home/you/.el-hidratador/ledger.sqlite (mode 0600, integrity ok)"},
+    {"name": "journal-mode", "status": "ok", "detail": "wal"},
+    {"name": "adapter:git", "status": "ok", "detail": "git at /usr/bin/git (cloning a repository for staging)"},
+    {"name": "adapter:gh", "status": "warn", "detail": "gh is not on PATH, so the GitHub adapter cannot run"},
+    {"name": "disk", "status": "ok", "detail": "48213 MiB free on /home/you/.el-hidratador"}
+  ],
+  "failed": [],
+  "warnings": ["adapter:gh"],
+  "healthy": true,
+  "ok": true,
+  "command": "doctor"
+}
+```
+
+| Key | Meaning |
+|-----|---------|
+| `checks` | Every check, with `name`, `status` (`ok`, `warn`, or `fail`), and `detail` |
+| `remedy` | Present on a warning or failure: what to do about it |
+| `failed` | The names of the checks that failed |
+| `warnings` | The names of the checks that warned |
+| `healthy` | `false` when at least one check failed |
+
+The exit code is `0` when the machine is healthy and `2` when a check failed. A missing ledger or a
+missing adapter is a warning, not a failure: the core does not need either.
+
+`doctor` never opens a ledger, so it cannot create one.
+
+### `demo`
+
+Run a complete ticket lifecycle on a scratch ledger and narrate it.
+
+```bash
+hidratador demo          # JSON
+hidratador demo --text   # the same thing as plain text
+```
+
+```text
+El Hidratador demonstration
+================================
+
+Created the ticket M-1001 in status INBOX.
+  Scope keys: repo/api, repo/edge
+  A scope key is a resource, not a description. Two tickets that share a scope key cannot run at the same time.
+Took the execution lease. The task is IN_PROGRESS.
+  Lease expires at 2026-10-22T13:04:08.471Z.
+Requested review. The task is in REVIEW, not DONE.
+  Finishing is not accepting. Only an operator decision can move work to DONE.
+Accepted the work. The task is DONE.
+```
+
+| Flag | Effect |
+|------|--------|
+| `--text` | Print the narrative as plain text instead of JSON |
+| `--db PATH` | Run against that ledger instead of a scratch one |
+| `--keep` | Keep the scratch ledger instead of deleting it |
+
+The demonstration never touches the operator's own ledger unless `--db` says otherwise.
+
+### `topology`
+
+Report the machine this process runs on.
+
+```bash
+hidratador topology
+```
+
+```json
+{
+  "host": "edge-01",
+  "machine": "arm64",
+  "platform": "macOS-14.6-arm64-arm-64bit",
+  "processor": "arm",
+  "python": "3.13.1"
+}
+```
+
+### `schema`
+
+Print or write the published JSON Schemas.
+
+```bash
+hidratador schema                              # every schema
+hidratador schema --name handoff               # one schema
+hidratador schema --out schema/                # write all five files
+hidratador schema --validate payload.json --against handoff
+```
+
+| Flag | Effect |
+|------|--------|
+| `--name NAME` | Print one schema: `ticket`, `packet`, `manifest`, `sandbox`, `handoff` |
+| `--out DIR` | Write every schema into that directory |
+| `--validate FILE` | Validate a JSON document against a schema |
+| `--against NAME` | The schema used by `--validate` (default `handoff`) |
+
+```json
+{
+  "file": "payload.json",
+  "schema": "handoff",
+  "valid": true,
+  "errors": []
+}
+```
+
+The five published files are also kept in the repository under `schema/`, and a test asserts that
+the copies match the module.
+
+---
+
 ## Ledger and audit
 
 ### `init`
@@ -159,6 +285,104 @@ Each event is `{seq, type, task_id, data, created, created_iso}`. Event types: `
 
 ---
 
+### `replay`
+
+Rebuild a task's lifecycle from its event log and compare it with the current state.
+
+```bash
+hidratador replay M-1001
+hidratador replay --all
+```
+
+```json
+{
+  "task_id": "M-1001",
+  "current_station": "REVIEW",
+  "reconstructed_station": "REVIEW",
+  "event_count": 5,
+  "consistent": true,
+  "divergences": [],
+  "steps": [
+    {"seq": 1, "event": "task.created", "station": "INBOX", "moved": true, "detail": "scope=repo/api"},
+    {"seq": 2, "event": "task.triaged", "station": "READY", "moved": true, "detail": ""}
+  ],
+  "note": "Replay is read-only. A divergence is reported, never repaired."
+}
+```
+
+When the event log and the ticket table disagree, `consistent` is `false` and `divergences` names
+the difference. Replay never writes to the ledger.
+
+### `failures`
+
+List the recorded failures, grouped by fingerprint.
+
+```bash
+hidratador failures
+hidratador failures --task M-1001
+```
+
+```json
+{
+  "failures": [
+    {
+      "fingerprint": "9a1c4e7b2d5f6081",
+      "category": "lease_expired",
+      "summary": "Ownership expired; reconcile the old worker before retrying.",
+      "occurrences": 2,
+      "last_seen_iso": "2026-10-22T06:12:44.318Z"
+    }
+  ]
+}
+```
+
+With `--task`, the list is the raw failure records for that task rather than the grouped summary.
+
+### `checkpoints`
+
+List the checkpoints of a session.
+
+```bash
+hidratador checkpoints 4f2a1c9b8e7d6c5b
+```
+
+```json
+{
+  "session_id": "4f2a1c9b8e7d6c5b",
+  "count": 2,
+  "checkpoints": [
+    {
+      "id": 1,
+      "summary": "Implemented token issuance",
+      "evidence": "diff 4f2a1c; POST /api/auth/login returns an access+refresh pair",
+      "next_step": "Refresh rotation",
+      "tokens": 1200,
+      "evidence_hash": "9f2c1b7d4e6a8f0c2b4d6e8a0c2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e"
+    }
+  ]
+}
+```
+
+### `handoffs`
+
+List the handoff payloads recorded for a task.
+
+```bash
+hidratador handoffs M-1001
+```
+
+```json
+{
+  "task_id": "M-1001",
+  "count": 1,
+  "handoffs": [
+    {"id": "6c1f...", "session_id": "4f2a...", "manifest": {}, "packet": {}, "created_iso": "2026-10-22T07:12:03.114Z"}
+  ]
+}
+```
+
+---
+
 ## Tasks
 
 ### `task-add`
@@ -242,6 +466,24 @@ hidratador task-list --status DONE
   ]
 }
 ```
+
+### `task-update`
+
+Change one documented field of a ticket.
+
+```bash
+hidratador task-update M-1001 --field token_budget --value 16000
+hidratador task-update M-1001 --field tags --value security,auth
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `title`, `objective`, `acceptance`, `owner`, `description`, `seed_key` | text | |
+| `token_budget`, `priority` | integer | `priority` is 1 (P0) to 3 (P3) |
+| `scope`, `tags`, `depends_on`, `blocks`, `acceptance_criteria` | list | Comma separated, or repeat `--list` |
+
+Lifecycle fields are not settable here: `status` is refused, because a station changes through
+`start`, `checkpoint`, `fail`, `finish`, and `decide`.
 
 ### `triage`
 
@@ -435,6 +677,24 @@ hidratador context-add M-1002 \
   "hash": "37f14733e19edd888083b8fc802a14a6ba54d85fa5aea94698ce6e97526a9ab4",
   "ok": true,
   "source": "repo/edge-notes"
+}
+```
+
+### `context-list`
+
+List the context attached to a task.
+
+```bash
+hidratador context-list M-1001
+```
+
+```json
+{
+  "task_id": "M-1001",
+  "count": 2,
+  "entries": [
+    {"hash": "9f2c1b7d...", "source": "repo readme", "priority": 10, "bytes": 4821, "expires": null}
+  ]
 }
 ```
 
@@ -633,6 +893,83 @@ hidratador profile-add local-heavy \
   "ok": true,
   "profile": "local-heavy",
   "provenance": "operator declaration; not provider verification"
+}
+```
+
+### `sandbox-apply`
+
+Print the staging sandbox for a task, and create it only when asked.
+
+```bash
+hidratador sandbox-apply --id M-1001 --workdir /absolute/path/to/work
+hidratador sandbox-apply --id M-1001 --workdir /absolute/path --apply
+```
+
+| Flag | Effect |
+|------|--------|
+| `--id` | The task the sandbox stages |
+| `--workdir` | The absolute path mounted at `/workspace`, writable |
+| `--image` | The container image (default `python:3.12-slim`) |
+| `--repo-mount` | A path mounted read-only at `/repo` |
+| `--evidence-dir` | A path mounted read-only at `/evidence` |
+| `--name` | The container name to report |
+| `--apply` | Create the container instead of printing the command |
+
+```json
+{
+  "applied": false,
+  "dry_run": true,
+  "argv": ["docker", "run", "-d", "--name", "hidratador-m-1001", "--read-only", "--network", "none"],
+  "spec_hash": "62b1ddf8c291e0fc",
+  "boundary": {
+    "writable_paths": ["/workspace"],
+    "read_only_paths": [],
+    "network": "none",
+    "root_filesystem": "read-only",
+    "capabilities_dropped": ["ALL"]
+  },
+  "note": "A sandbox specification is prepared state, not permission to execute."
+}
+```
+
+Without `--apply` nothing is created: the command prints the exact `docker run` argv under `argv`,
+and the boundary report, so the staging can be reviewed before it exists. The command is the only
+place in the package that starts a container, and it only does so when the operator asks.
+
+### `sandbox-teardown`
+
+Remove a staging container.
+
+```bash
+hidratador sandbox-teardown --name hidratador-m-1001
+```
+
+```json
+{"removed": true, "container": "hidratador-m-1001", "stderr": ""}
+```
+
+It removes exactly the container it is given and nothing else.
+
+### `profile-list`
+
+List the declared compute profiles.
+
+```bash
+hidratador profile-list
+```
+
+```json
+{
+  "count": 1,
+  "profiles": [
+    {
+      "id": "local-coder",
+      "kinds": ["code", "fix"],
+      "context_limit": 16000,
+      "cost": "zero_incremental",
+      "verified_until_iso": "2026-10-22T09:12:03.114Z"
+    }
+  ]
 }
 ```
 

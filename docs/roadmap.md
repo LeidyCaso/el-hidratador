@@ -10,7 +10,7 @@ Anything that has not been verified against running code is marked **unverified*
 
 ## Now — shipped and documented
 
-These behaviours exist in `0.1.0` and are described in the pages linked below.
+These behaviours exist in `0.2.0` and are described in the pages linked below.
 
 | Outcome | Where it lives |
 |---------|----------------|
@@ -25,6 +25,9 @@ These behaviours exist in `0.1.0` and are described in the pages linked below.
 | The dashboard adapter refuses anything that is not loopback HTTP | [Security](security.md) |
 | Every CLI command emits exactly one JSON object and a documented exit code | [CLI reference](cli-reference.md) |
 | Tickets can be exported to a portable, diffable file tree | [Operations](operations.md) |
+| The handoff contract is published as JSON Schema, and what the code produces satisfies it | [Architecture](architecture.md) |
+| A task's lifecycle can be rebuilt from the event log, and a divergence is reported | [Architecture](architecture.md) |
+| A newcomer can check the machine and watch a full run without touching their own state | [Getting started](getting-started.md) |
 
 ---
 
@@ -32,26 +35,17 @@ These behaviours exist in `0.1.0` and are described in the pages linked below.
 
 Each item names the outcome that proves it is done.
 
-### Close the gap between the library and the CLI
+### Close the rest of the gap between the library and the CLI
 
-Several library capabilities are not reachable from the command line today. The outcome is that an
-operator can do everything the library can do without writing Python.
+Most of the library is reachable from the command line now. What is left:
 
-- `Ledger.update_task()` becomes a `task-update` command. **Observable:** `hidratador task-update
-  M-1001 --budget 16000` changes the ticket's budget, and a task that was blocked on budget can be
-  retried and started without a Python script.
-- Sandbox lifecycle becomes a command. **Observable:** `hidratador sandbox-apply --id <task> --
-  workdir <path>` prints the exact `docker run` argv by default and only creates the container when
-  `--apply` is passed; `hidratador sandbox-teardown --name <container>` removes it.
-- Read-only views for records the ledger already holds. **Observable:** `hidratador checkpoints
-  <session>`, `hidratador failures [--task <id>]`, and `hidratador handoffs <id>` return those
-  records as JSON.
+- The sandbox lifecycle becomes a command. **Observable:** `hidratador sandbox-apply --id <task>
+  --workdir <path>` prints the exact `docker run` argv by default and only creates the container
+  when `--apply` is passed; `hidratador sandbox-teardown --name <container>` removes it.
 - The GitHub adapter's own state becomes visible. **Observable:** `hidratador github-status
   [--repo owner/name]` reports observation counts and outbox counts by state.
 - The dashboard health probe becomes a command. **Observable:** `hidratador dashboard-health --url
   <url>` returns `{"reachable": true, ...}` without raising.
-- The local topology report becomes a command. **Observable:** `hidratador topology` prints the
-  platform, machine, and Python version the package sees.
 
 ### Make the DAG parser configurable
 

@@ -73,8 +73,21 @@ refuses rather than degrades.
 
 ## Start here
 
-Three commands, in order. This is the shortest path from an empty directory to a ledger with one
-task in it.
+Two commands, in order, if you have never seen the project.
+
+```bash
+# 1. Is this machine ready? It reports; it never repairs anything.
+hidratador doctor
+
+# 2. Watch a whole ticket lifecycle, narrated, on a scratch ledger.
+hidratador demo --text
+```
+
+`demo` runs a ticket from `INBOX` to `DONE` in a temporary directory and explains each step. It
+never touches your own ledger.
+
+Three commands, in order, if you want to drive it yourself. This is the shortest path from an
+empty directory to a ledger with one task in it.
 
 ```bash
 # 1. Create the ledger (default: ~/.el-hidratador/ledger.sqlite)
@@ -84,7 +97,7 @@ hidratador init
 hidratador task-add M-1001 \
   --objective "Expose GET /healthz that echoes the edge request id" \
   --acceptance "GET /healthz returns 200 with the X-Request-Id header; unit test passes" \
-  --scope repo/api --scope terminal-1 \
+  --scope repo/api --scope repo/edge \
   --budget 4000
 
 # 3. Inspect the whole ledger
@@ -95,7 +108,8 @@ Every command prints exactly one JSON object on stdout. Nothing else is written 
 CLI composes with `jq`, pipes, and scripts without parsing prose.
 
 For the full lifecycle — triage, lease, checkpoint, finish, accept — read the
-[walkthrough](https://github.com/hamanakam1/el-hidratador/blob/main/examples/walkthrough.md).
+[walkthrough](https://github.com/hamanakam1/el-hidratador/blob/main/examples/walkthrough.md), or
+the [getting started](getting-started.md) page, which explains the vocabulary as it appears.
 
 ---
 
@@ -103,14 +117,22 @@ For the full lifecycle — triage, lease, checkpoint, finish, accept — read th
 
 | Page | What it covers |
 |------|----------------|
+| [Getting started](getting-started.md) | The five-minute path, with the vocabulary explained as it appears |
+| [Glossary](glossary.md) | Every domain term, defined once, in one place |
+| [FAQ](faq.md) | The questions newcomers actually ask, answered without hedging |
+| [Install](install.md) | Every install path: PyPI, checkout, container, devcontainer, from source |
 | [Architecture](architecture.md) | The five layers, module map, data model, ticket lifecycle, DAG and context algorithms, trade-offs |
 | [CLI reference](cli-reference.md) | Every command, every flag, exit codes, JSON keys returned |
 | [Context and packets](context-and-packets.md) | How context is attached, deduplicated, prioritised, budgeted, and omitted |
 | [DAG and sandbox](dag-and-sandbox.md) | Node parsing, topological order, manifest schema, sandbox spec, boundary report |
 | [GitHub sync](github-sync.md) | Observations, outbox, idempotency keys, markers, reconciliation |
 | [Failure playbook](failure-playbook.md) | Every failure category, its ledger effect, and the exact recovery commands |
+| [Troubleshooting](troubleshooting.md) | Symptom, cause, and the exact fix, for the errors you will actually hit |
 | [Security](security.md) | Trust boundaries, what is deliberately not done, reporting process |
 | [Operations](operations.md) | Ledger location, environment variables, backup, restore, event log, stuck-task runbook |
+| [Development](development.md) | How to work on the project: conventions, adding a command, adding a migration |
+| [Community](community.md) | How to get help, how to propose a change, how decisions are made |
+| [Decisions](adr/index.md) | The architecture decision records: what was decided, and what it cost |
 | [Roadmap](roadmap.md) | Now / next / later phases, and an explicit not-planned list |
 | [Walkthrough](https://github.com/hamanakam1/el-hidratador/blob/main/examples/walkthrough.md) | A complete runnable session, start to `DONE` |
 | [Sample ticket](https://github.com/hamanakam1/el-hidratador/blob/main/examples/ticket.md) | The ticket markdown shape that the DAG parser reads |

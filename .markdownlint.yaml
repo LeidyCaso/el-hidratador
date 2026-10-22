@@ -15,3 +15,7 @@ MD024:
 MD041: false
 # Inline HTML is used deliberately in the MkDocs configuration notes.
 MD033: false
+# A tab is a real character in command output, for example the separator that
+# `jq` puts between two fields.
+MD010:
+  code_blocks: false

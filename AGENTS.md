@@ -5,8 +5,8 @@ rules the code enforces, and they are not optional.
 
 ## The core boundary
 
-`el_hidratador/core.py`, `context_expander.py`, `dag.py`, `tickets.py`, and
-`hardware_router.py` are **standard library only**.
+`el_hidratador/core.py`, `context_expander.py`, `dag.py`, `tickets.py`, `hardware_router.py`,
+`schema.py`, `replay.py`, `doctor.py`, and `demo.py` are **standard library only**.
 
 - No network calls
 - No shell execution
@@ -70,6 +70,21 @@ must pass before a pull request.
   token, an internal hostname, or a local installation path.
 - `.hidratador/`, `*.sqlite`, `*.sqlite-wal`, and `*.sqlite-shm` are ignored.
   Keep it that way.
+
+## The contract
+
+`schema/` holds the published JSON Schemas. They are generated from `el_hidratador/schema.py`,
+and a test asserts that the copies match the module. When a payload changes, change the schema
+with it — a schema that drifts from the code is worse than no schema.
+
+Two fields are contracts in their own right: `handoff.authorized` and
+`manifest.execution_authorized` are constants of `false`. Do not make them configurable.
+
+## Read-only means read-only
+
+A command that only reads must not create a ledger as a side effect. The commands listed in
+`_NO_LEDGER_COMMANDS` in `cli.py` open no database at all. If you add a command that only reads,
+add it to that set.
 
 ## Testing expectations
 

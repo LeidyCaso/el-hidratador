@@ -1,0 +1,120 @@
+{
+  "$id": "https://hamanakam1.github.io/el-hidratador/schema/sandbox.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "Published by El Hidratador 1.0.0. See the repository for the full contract.",
+  "properties": {
+    "cap_drop": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "command": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "created": {
+      "type": "boolean"
+    },
+    "environment": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "image": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "mounts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "ro",
+              "rw"
+            ],
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "network": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "string"
+    },
+    "read_only_root": {
+      "type": "boolean"
+    },
+    "resources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus": {
+          "type": "string"
+        },
+        "memory": {
+          "type": "string"
+        },
+        "pids": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "memory",
+        "cpus",
+        "pids"
+      ],
+      "type": "object"
+    },
+    "security_opt": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "spec_hash": {
+      "pattern": "^[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "task_id": {
+      "description": "Ticket identifier, for example M-1001.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "type": "string"
+    },
+    "workdir": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "image",
+    "mounts",
+    "resources",
+    "environment"
+  ],
+  "title": "El Hidratador sandbox",
+  "type": "object"
+}

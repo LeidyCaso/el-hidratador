@@ -199,6 +199,93 @@ class CliTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             main(["--db", self.db, "not-a-command"])
 
+    def test_doctor_reports_the_environment(self) -> None:
+        code, payload = self._run("doctor")
+        self.assertEqual(code, 0)
+        self.assertIn("checks", payload)
+        self.assertTrue(payload["healthy"])
+
+    def test_demo_runs_without_touching_the_ledger(self) -> None:
+        code, payload = self._run("demo")
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["steps"])
+        self.assertTrue(payload["temporary"])
+
+    def test_schema_lists_every_schema(self) -> None:
+        code, payload = self._run("schema")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["count"], 5)
+
+    def test_schema_writes_the_published_files(self) -> None:
+        target = str(Path(self.tmp.name) / "schemas")
+        code, payload = self._run("schema", "--out", target)
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["count"], 5)
+        self.assertTrue(Path(target, "handoff.json").exists())
+
+    def test_replay_reports_a_missing_task(self) -> None:
+        code, payload = self._run("replay", "M-does-not-exist")
+        self.assertEqual(code, 2)
+        self.assertFalse(payload["ok"])
+
+    def test_replay_reconstructs_a_lifecycle(self) -> None:
+        self._run("task-add", "M-1001", "--objective", "o", "--acceptance", "a")
+        self._run("triage", "M-1001")
+        code, payload = self._run("replay", "M-1001")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["reconstructed_station"], "READY")
+        self.assertTrue(payload["consistent"])
+
+    def test_failures_checkpoints_and_handoffs_are_listed(self) -> None:
+        self._run("task-add", "M-1001", "--objective", "o", "--acceptance", "a")
+        code, payload = self._run("failures")
+        self.assertEqual(code, 0)
+        self.assertIn("failures", payload)
+        code, payload = self._run("handoffs", "M-1001")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["count"], 0)
+
+    def test_context_list_reports_the_attached_blobs(self) -> None:
+        self._run("task-add", "M-1001", "--objective", "o", "--acceptance", "a")
+        self._run("context-add", "M-1001", "--text", "some context", "--source-label", "test")
+        code, payload = self._run("context-list", "M-1001")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["count"], 1)
+
+    def test_task_update_changes_a_field(self) -> None:
+        self._run("task-add", "M-1001", "--objective", "o", "--acceptance", "a")
+        code, payload = self._run(
+            "task-update", "M-1001", "--field", "token_budget", "--value", "9000"
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["token_budget"], 9000)
+
+    def test_task_update_refuses_an_unknown_field(self) -> None:
+        self._run("task-add", "M-1001", "--objective", "o", "--acceptance", "a")
+        code, payload = self._run("task-update", "M-1001", "--field", "status", "--value", "DONE")
+        self.assertEqual(code, 2)
+        self.assertFalse(payload["ok"])
+
+    def test_sandbox_apply_prints_the_command_without_creating_it(self) -> None:
+        code, payload = self._run(
+            "sandbox-apply", "--id", "M-1001", "--workdir", str(Path(self.tmp.name))
+        )
+        self.assertEqual(code, 0)
+        self.assertFalse(payload["applied"])
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual(payload["argv"][0], "docker")
+        self.assertEqual(payload["boundary"]["network"], "none")
+
+    def test_sandbox_teardown_needs_a_name(self) -> None:
+        with self.assertRaises(SystemExit):
+            main(["--db", self.db, "sandbox-teardown"])
+
+    def test_read_only_commands_do_not_create_a_ledger(self) -> None:
+        target = str(Path(self.tmp.name) / "untouched.sqlite")
+        code, _ = self._run("--db", target, "topology")
+        self.assertEqual(code, 0)
+        self.assertFalse(Path(target).exists())
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

@@ -1,0 +1,349 @@
+{
+  "$id": "https://hamanakam1.github.io/el-hidratador/schema/handoff.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Published by El Hidratador 1.0.0. See the repository for the full contract.",
+  "properties": {
+    "authorized": {
+      "const": false
+    },
+    "manifest": {
+      "additionalProperties": true,
+      "properties": {
+        "acceptance": {
+          "type": "string"
+        },
+        "edges": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "execution_authorized": {
+          "const": false
+        },
+        "manifest_hash": {
+          "pattern": "^[0-9a-f]{16}$",
+          "type": "string"
+        },
+        "next_node": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nodes": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "depends_on": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "done": {
+                "type": "boolean"
+              },
+              "files": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "order": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "source": {
+                "type": "string"
+              },
+              "tests": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "order"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "objective": {
+          "type": "string"
+        },
+        "provenance": {
+          "type": "string"
+        },
+        "scope": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "task_id": {
+          "description": "Ticket identifier, for example M-1001.",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "nodes",
+        "execution_authorized",
+        "provenance"
+      ],
+      "type": "object"
+    },
+    "note": {
+      "type": "string"
+    },
+    "packet": {
+      "additionalProperties": true,
+      "properties": {
+        "acceptance": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "acceptance_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "checkpoint": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "context": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "body": {
+                "type": "string"
+              },
+              "hash": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "source": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "hash",
+              "source",
+              "body"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "files": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "objective": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer"
+        },
+        "scope": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "task_id": {
+          "description": "Ticket identifier, for example M-1001.",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        "tests": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        },
+        "trust": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "objective",
+        "acceptance",
+        "scope",
+        "status",
+        "trust",
+        "context"
+      ],
+      "type": "object"
+    },
+    "sandbox": {
+      "additionalProperties": true,
+      "properties": {
+        "cap_drop": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "created": {
+          "type": "boolean"
+        },
+        "environment": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "image": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "mounts": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "enum": [
+                  "ro",
+                  "rw"
+                ],
+                "type": "string"
+              },
+              "purpose": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "target",
+              "mode"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "network": {
+          "type": "string"
+        },
+        "provenance": {
+          "type": "string"
+        },
+        "read_only_root": {
+          "type": "boolean"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "properties": {
+            "cpus": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            },
+            "pids": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "memory",
+            "cpus",
+            "pids"
+          ],
+          "type": "object"
+        },
+        "security_opt": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "spec_hash": {
+          "pattern": "^[0-9a-f]{16}$",
+          "type": "string"
+        },
+        "task_id": {
+          "description": "Ticket identifier, for example M-1001.",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        "workdir": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "image",
+        "mounts",
+        "resources",
+        "environment"
+      ],
+      "type": "object"
+    },
+    "task_id": {
+      "description": "Ticket identifier, for example M-1001.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "sandbox",
+    "manifest",
+    "packet",
+    "authorized"
+  ],
+  "title": "El Hidratador handoff",
+  "type": "object"
+}

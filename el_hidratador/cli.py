@@ -25,10 +25,14 @@ from .context_expander import expand_from_ledger
 from .core import Ledger, create_ledger, default_db_path
 from .dag import build_dag, handoff_payload, manifest, summarize
 from .dashboard import preview
-from .errors import AdapterError, HidratadorError
+from .demo import demo_text, run_demo
+from .doctor import run_checks
+from .errors import AdapterError, HidratadorError, ValidationError
 from .github_sync import GitHubSync
-from .hardware_router import default_targets, dispatch_plan, evaluate
-from .sandbox import build_sandbox
+from .hardware_router import default_targets, dispatch_plan, evaluate, local_topology
+from .replay import replay, replay_all
+from .sandbox import DEFAULT_IMAGE, apply_sandbox, boundary_report, build_sandbox, teardown_sandbox
+from .schema import all_schemas, schema_files, schema_for, validate_named
 from .tickets import TicketStore
 
 
@@ -62,6 +66,71 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("status", help="snapshot the whole ledger")
     sub.add_parser("reconcile", help="expire stale leases and report")
     sub.add_parser("events", help="print audit events")
+    sub.add_parser("doctor", help="check whether this machine is ready")
+    sub.add_parser("topology", help="report the local machine and the adapters")
+    sub.add_parser("demo", help="run a narrated demonstration on a scratch ledger")
+
+    demo_cmd = sub.choices["demo"]
+    demo_cmd.add_argument("--text", action="store_true", help="print the narrative as plain text")
+    demo_cmd.add_argument("--keep", action="store_true", help="keep the scratch ledger")
+    demo_cmd.add_argument(
+        "--db", dest="demo_db", default=None, help="use this ledger instead of a scratch one"
+    )
+
+    schema_cmd = sub.add_parser("schema", help="print or write the published schemas")
+    schema_cmd.add_argument("--name", default=None, help="print one schema by name")
+    schema_cmd.add_argument("--out", default=None, help="write every schema into this directory")
+    schema_cmd.add_argument(
+        "--validate",
+        dest="validate_file",
+        default=None,
+        help="validate a JSON document against a named schema",
+    )
+    schema_cmd.add_argument("--against", default="handoff", help="the schema used by --validate")
+
+    replay_cmd = sub.add_parser("replay", help="rebuild a task from its event log")
+    replay_cmd.add_argument("id", nargs="?", default=None)
+    replay_cmd.add_argument("--all", action="store_true", help="replay every task")
+
+    failures_cmd = sub.add_parser("failures", help="list the recorded failures")
+    failures_cmd.add_argument("--task", default=None)
+
+    checkpoints_cmd = sub.add_parser("checkpoints", help="list the checkpoints of a session")
+    checkpoints_cmd.add_argument("session")
+
+    handoffs_cmd = sub.add_parser("handoffs", help="list the recorded handoffs of a task")
+    handoffs_cmd.add_argument("id")
+
+    context_list = sub.add_parser("context-list", help="list the context attached to a task")
+    context_list.add_argument("id")
+
+    sub.add_parser("profile-list", help="list the declared compute profiles")
+
+    sandbox_apply = sub.add_parser("sandbox-apply", help="print or create the staging sandbox")
+    sandbox_apply.add_argument("--id", required=True, help="the task the sandbox stages")
+    sandbox_apply.add_argument(
+        "--workdir", required=True, help="the absolute path mounted as the workspace"
+    )
+    sandbox_apply.add_argument("--image", default=DEFAULT_IMAGE, help="the container image")
+    sandbox_apply.add_argument("--repo-mount", default=None, help="a read-only reference checkout")
+    sandbox_apply.add_argument(
+        "--evidence-dir", default=None, help="a read-only evidence directory"
+    )
+    sandbox_apply.add_argument("--name", default=None, help="the container name")
+    sandbox_apply.add_argument(
+        "--apply", action="store_true", help="create the container instead of printing the command"
+    )
+
+    sandbox_teardown = sub.add_parser("sandbox-teardown", help="remove a staging sandbox")
+    sandbox_teardown.add_argument("--name", required=True, help="the container name")
+
+    task_update = sub.add_parser("task-update", help="change a ticket field")
+    task_update.add_argument("id")
+    task_update.add_argument("--field", required=True, help="the field to change")
+    task_update.add_argument("--value", required=True, help="the new value")
+    task_update.add_argument(
+        "--list", dest="value_list", action="append", default=None, help="a list value, repeatable"
+    )
 
     events = sub.choices["events"]
     events.add_argument("--after", type=int, default=0)
@@ -185,6 +254,12 @@ def _db_path(args: argparse.Namespace) -> Path:
     return default_db_path()
 
 
+#: Commands that must not create or open a ledger. A read-only command that
+#: creates state on the way is a read-only command with a side effect.
+#: `doctor` and `demo` are handled before the ledger is opened; the rest live
+#: in `_NO_LEDGER_HANDLERS`.
+
+
 def run(argv: Sequence[str] | None = None) -> int:
     """Execute one CLI invocation. Returns the process exit code."""
     parser = build_parser()
@@ -193,6 +268,21 @@ def run(argv: Sequence[str] | None = None) -> int:
     command = args.command
 
     try:
+        if command == "doctor":
+            payload = run_checks(_db_path(args))
+            payload.setdefault("ok", True)
+            payload["command"] = command
+            _emit(payload, pretty)
+            return 0 if payload["healthy"] else 2
+
+        if command == "demo":
+            result = run_demo(args.demo_db, keep=args.keep)
+            if args.text:
+                print(demo_text(result), end="")
+            else:
+                _emit(result, pretty)
+            return 0
+
         if command == "init":
             path = _db_path(args)
             ledger = create_ledger(path)
@@ -205,16 +295,24 @@ def run(argv: Sequence[str] | None = None) -> int:
             _emit(payload, pretty)
             return 0
 
+        if command in _NO_LEDGER_HANDLERS:
+            payload = _NO_LEDGER_HANDLERS[command](args, None)
+            payload.setdefault("ok", True)
+            payload["command"] = command
+            _emit(payload, pretty)
+            return 0
+
         ledger = create_ledger(_db_path(args))
         try:
-            handler: Callable[[argparse.Namespace, Ledger], dict[str, Any]] = _HANDLERS[command]
+            handler: Callable[[argparse.Namespace, Any], dict[str, Any]] = _HANDLERS[command]
             payload = handler(args, ledger)
             payload.setdefault("ok", True)
             payload["command"] = command
             _emit(payload, pretty)
             return 0
         finally:
-            ledger.close()
+            if ledger is not None:
+                ledger.close()
     except AdapterError as exc:
         _emit({"ok": False, "error": str(exc), "kind": "adapter"}, pretty)
         return 3
@@ -237,6 +335,116 @@ def _cmd_reconcile(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
 def _cmd_events(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
     events = ledger.events(after=args.after)
     return {"events": events, "count": len(events)}
+
+
+def _cmd_topology(args: argparse.Namespace, ledger: Ledger | None) -> dict[str, Any]:
+    return local_topology()
+
+
+def _cmd_failures(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    if args.task:
+        return {"failures": ledger.failures(args.task), "task_id": args.task}
+    return {"failures": ledger.failure_summary()}
+
+
+def _cmd_checkpoints(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    checkpoints = ledger.checkpoints(args.session)
+    return {"session_id": args.session, "checkpoints": checkpoints, "count": len(checkpoints)}
+
+
+def _cmd_handoffs(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    handoffs = ledger.handoffs(args.id)
+    return {"task_id": args.id, "handoffs": handoffs, "count": len(handoffs)}
+
+
+def _cmd_context_list(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    entries = ledger.context_entries(args.id)
+    return {
+        "task_id": args.id,
+        "count": len(entries),
+        "entries": [
+            {
+                "hash": entry["hash"],
+                "source": entry["source"],
+                "priority": entry["priority"],
+                "bytes": len(entry["body"].encode()),
+                "expires": entry["expires"],
+            }
+            for entry in entries
+        ],
+    }
+
+
+def _cmd_sandbox_apply(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    spec = build_sandbox(
+        args.id,
+        args.workdir,
+        image=args.image,
+        repo_mount=args.repo_mount,
+        evidence_dir=args.evidence_dir,
+    )
+    result = apply_sandbox(spec, dry_run=not args.apply)
+    argv = result.pop("command", [])
+    result["argv"] = argv
+    if args.name:
+        result["container_name"] = args.name
+    result["boundary"] = boundary_report(spec)
+    result["note"] = "A sandbox specification is prepared state, not permission to execute."
+    return result
+
+
+def _cmd_sandbox_teardown(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    return teardown_sandbox(args.name)
+
+
+def _cmd_profile_list(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    profiles = [profile.to_dict() for profile in ledger.profiles()]
+    return {"profiles": profiles, "count": len(profiles)}
+
+
+def _cmd_task_update(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    value: object
+    if args.value_list is not None:
+        value = list(args.value_list)
+    elif args.field in ("scope", "tags", "depends_on", "blocks", "acceptance_criteria"):
+        value = [part.strip() for part in args.value.split(",") if part.strip()]
+    elif args.field == "token_budget" or args.field == "priority":
+        value = int(args.value)
+    else:
+        value = args.value
+    return ledger.update_task(args.id, **{args.field: value})
+
+
+def _cmd_replay(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    if args.all:
+        return replay_all(ledger)
+    if not args.id:
+        raise ValidationError("replay needs a task id, or --all")
+    return replay(ledger, args.id)
+
+
+def _cmd_schema(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    if args.out:
+        directory = Path(args.out)
+        directory.mkdir(parents=True, exist_ok=True)
+        written = []
+        for filename, content in schema_files():
+            path = directory / filename
+            path.write_text(content, encoding="utf-8")
+            written.append(str(path))
+        return {"written": written, "count": len(written)}
+    if args.validate_file:
+        document = json.loads(Path(args.validate_file).read_text(encoding="utf-8"))
+        errors = validate_named(document, args.against)
+        return {
+            "file": args.validate_file,
+            "schema": args.against,
+            "valid": not errors,
+            "errors": errors,
+        }
+    if args.name:
+        return {"schema": args.name, "definition": schema_for(args.name)}
+    return {"schemas": all_schemas(), "count": len(all_schemas())}
 
 
 def _cmd_task_add(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
@@ -380,7 +588,7 @@ def _cmd_export(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
     return store.export_all(ledger.tasks())
 
 
-def _cmd_github_poll(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+def _cmd_github_poll(args: argparse.Namespace, ledger: Ledger | None) -> dict[str, Any]:
     sync = GitHubSync()
     try:
         return sync.poll(args.repo, dry_run=not args.apply)
@@ -388,7 +596,7 @@ def _cmd_github_poll(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]
         sync.close()
 
 
-def _cmd_github_publish(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+def _cmd_github_publish(args: argparse.Namespace, ledger: Ledger | None) -> dict[str, Any]:
     sync = GitHubSync()
     try:
         queued = sync.enqueue(args.repo, args.issue, args.key, args.body)
@@ -398,12 +606,23 @@ def _cmd_github_publish(args: argparse.Namespace, ledger: Ledger) -> dict[str, A
         sync.close()
 
 
-def _cmd_dashboard_preview(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+def _cmd_dashboard_preview(args: argparse.Namespace, ledger: Ledger | None) -> dict[str, Any]:
     return preview(args.url, args.status, args.offset, args.limit)
 
 
-_HANDLERS: dict[str, Callable[[argparse.Namespace, Ledger], dict[str, Any]]] = {
+# The handlers keep their own precise signatures; the table is typed loosely
+# enough to hold both the ledger-backed and the ledger-free handlers.
+_HANDLERS: dict[str, Callable[[argparse.Namespace, Any], dict[str, Any]]] = {
     "status": _cmd_status,
+    "failures": _cmd_failures,
+    "checkpoints": _cmd_checkpoints,
+    "handoffs": _cmd_handoffs,
+    "context-list": _cmd_context_list,
+    "profile-list": _cmd_profile_list,
+    "sandbox-apply": _cmd_sandbox_apply,
+    "sandbox-teardown": _cmd_sandbox_teardown,
+    "task-update": _cmd_task_update,
+    "replay": _cmd_replay,
     "reconcile": _cmd_reconcile,
     "events": _cmd_events,
     "task-add": _cmd_task_add,
@@ -423,6 +642,12 @@ _HANDLERS: dict[str, Callable[[argparse.Namespace, Ledger], dict[str, Any]]] = {
     "profile-add": _cmd_profile_add,
     "route": _cmd_route,
     "export": _cmd_export,
+}
+
+#: Handlers that run without opening a ledger.
+_NO_LEDGER_HANDLERS: dict[str, Callable[[argparse.Namespace, Any], dict[str, Any]]] = {
+    "schema": _cmd_schema,
+    "topology": _cmd_topology,
     "github-poll": _cmd_github_poll,
     "github-publish": _cmd_github_publish,
     "dashboard-preview": _cmd_dashboard_preview,

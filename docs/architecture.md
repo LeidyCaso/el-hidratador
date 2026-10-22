@@ -60,11 +60,19 @@ decision moves it to `DONE`.
 | `github_sync.py` | `GitHubSync`: `record_observation`, `observations`, `poll`, `enqueue`, `pending`, `outbox`, `publish`, `status`, `body_hash`, `marker` | `gh` only | `gh` (optional adapter) |
 | `dashboard.py` | `validate_url`, `fetch`, `preview`, `health` | loopback HTTP only | no |
 | `tickets.py` | `TicketStore`, `render_ticket`, `render_front_matter`, `parse_front_matter` | no | no |
+| `schema.py` | The published JSON Schemas and a dependency-free validator | no | no |
+| `replay.py` | Rebuild a task's lifecycle from the event log | no | no |
+| `doctor.py` | Environment checks: interpreter, storage, adapters, disk | no | no |
+| `demo.py` | The narrated demonstration on a scratch ledger | no | no |
 | `cli.py` | JSON-first CLI; the `hidratador` console script | delegates | delegates |
 
 The core boundary — `core.py`, `errors.py`, `context_expander.py`, `dag.py`, `hardware_router.py`,
-`tickets.py` — imports nothing outside the standard library and performs no I/O beyond the local
-SQLite file and the local filesystem.
+`tickets.py`, `schema.py`, `replay.py`, `doctor.py`, `demo.py` — imports nothing outside the
+standard library and performs no I/O beyond the local SQLite file and the local filesystem.
+
+`doctor.py` is the one module that inspects the host: it looks for the `git`, `gh`, and `docker`
+executables with `shutil.which`, and it reports what it finds. It never runs them, and it never
+repairs what it finds.
 
 ---
 
@@ -237,6 +245,42 @@ Turning it off shells out to the `docker` CLI with a fixed argv, a timeout, and 
 environment (`PATH` and `HOME` only — no credential environment is inherited).
 
 ---
+
+## The contract layer
+
+The handoff between El Hidratador and whatever executes next is a contract, and a contract that
+lives only in prose is a contract that drifts. The published schemas in `schema/` describe the five
+payloads that cross that boundary:
+
+| Schema | Describes |
+|--------|-----------|
+| `ticket.json` | The ticket, as the ledger stores it |
+| `packet.json` | The hydrated packet, including the untrusted context entries |
+| `manifest.json` | The execution manifest and its nodes |
+| `sandbox.json` | The sandbox specification and its boundary |
+| `handoff.json` | The whole handoff: sandbox, manifest, packet |
+
+`el_hidratador/schema.py` publishes them and ships a small validator for the subset of JSON Schema
+they use, so a payload can be checked without adding a dependency to the core. A test asserts that
+the copies in `schema/` match the module, and another asserts that what the code produces satisfies
+what the module publishes.
+
+Two fields encode the house rules in the contract itself: `handoff.authorized` and
+`manifest.execution_authorized` are constants of `false`. A payload that claimed otherwise would
+not validate.
+
+## The event log as a record
+
+The ledger keeps two things: the current state of a task, and an ordered log of everything that
+happened to it. The second is the richer record, and it is the one a post-mortem needs.
+
+`replay.py` rebuilds the lifecycle of a task from the events alone, then compares that
+reconstruction with the current state. A disagreement is reported, never repaired: a ledger whose
+log and state disagree is a ledger you cannot trust, and quietly fixing it would hide the evidence
+of whatever caused the disagreement.
+
+Replay is read-only. It never writes to the ledger, and a test asserts that the event count is
+unchanged after a replay.
 
 ## Decisions and trade-offs
 

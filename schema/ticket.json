@@ -1,0 +1,117 @@
+{
+  "$id": "https://hamanakam1.github.io/el-hidratador/schema/ticket.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Published by El Hidratador 1.0.0. See the repository for the full contract.",
+  "properties": {
+    "acceptance": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "acceptance_criteria": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "blocks": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "created_at": {
+      "type": "number"
+    },
+    "created_at_iso": {
+      "type": "string"
+    },
+    "depends_on": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "description": {
+      "type": "string"
+    },
+    "id": {
+      "description": "Ticket identifier, for example M-1001.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "code",
+        "fix",
+        "closure",
+        "planning",
+        "product"
+      ],
+      "type": "string"
+    },
+    "objective": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "priority": {
+      "maximum": 3,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "scope": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "seed_key": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "INBOX",
+        "READY",
+        "IN_PROGRESS",
+        "BLOCKED",
+        "REVIEW",
+        "ACCEPTED",
+        "DONE",
+        "CANCELLED"
+      ],
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "title": {
+      "type": "string"
+    },
+    "token_budget": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "updated_at": {
+      "type": "number"
+    },
+    "updated_at_iso": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "objective",
+    "acceptance",
+    "status"
+  ],
+  "title": "El Hidratador ticket",
+  "type": "object"
+}

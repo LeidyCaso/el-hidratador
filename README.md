@@ -11,10 +11,9 @@
 
 **The Context Expansion and Execution Staging Engine.**
 
-El Hidratador is the bridge between human-approved intent and deterministic machine
-action. It turns a *dry* semantic ticket — fifty words of intent — into *wet* execution
-state: expanded context, an ordered execution DAG, a locked sandbox boundary, and a
-routed compute profile.
+El Hidratador is the bridge between human-approved intent and deterministic machine action. It
+turns a *dry* semantic ticket — fifty words of intent — into *wet* execution state: expanded
+context, an ordered execution DAG, a locked sandbox specification, and a routed compute profile.
 
 > **Pipeline position:** downstream from the Ticket Board, upstream from Taskrivet.
 
@@ -25,9 +24,38 @@ Ticket Board ──► [ El Hidratador ] ──► Taskrivet ──► Operator 
 
 ---
 
+## Welcome
+
+**If you are new here, start here.** Two commands, no setup, nothing to configure:
+
+```bash
+pip install el-hidratador
+
+hidratador doctor    # is this machine ready?
+hidratador demo      # watch a whole ticket lifecycle, narrated, on a scratch ledger
+```
+
+`demo` runs a ticket from `INBOX` to `DONE` in a temporary directory and explains each step as it
+happens. It never touches your own ledger.
+
+| If you want to… | Go to |
+|------------------|-------|
+| See it work in 60 seconds | [docs/getting-started.md](docs/getting-started.md) |
+| Understand the vocabulary | [docs/glossary.md](docs/glossary.md) |
+| Look up a term you just met | [docs/faq.md](docs/faq.md) |
+| Install it your way | [docs/install.md](docs/install.md) |
+| Fix something that stopped | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| Read the architecture | [docs/architecture.md](docs/architecture.md) |
+| Learn every command | [docs/cli-reference.md](docs/cli-reference.md) |
+| Work on the project | [docs/development.md](docs/development.md) |
+| Ask a question or propose something | [docs/community.md](docs/community.md) |
+
+---
+
 ## Badges
 
 [![CI](https://github.com/hamanakam1/el-hidratador/actions/workflows/ci.yml/badge.svg)](https://github.com/hamanakam1/el-hidratador/actions/workflows/ci.yml)
+[![Lint](https://github.com/hamanakam1/el-hidratador/actions/workflows/lint.yml/badge.svg)](https://github.com/hamanakam1/el-hidratador/actions/workflows/lint.yml)
 [![CodeQL](https://github.com/hamanakam1/el-hidratador/actions/workflows/codeql.yml/badge.svg)](https://github.com/hamanakam1/el-hidratador/actions/workflows/codeql.yml)
 [![Scorecard](https://github.com/hamanakam1/el-hidratador/actions/workflows/scorecard.yml/badge.svg)](https://github.com/hamanakam1/el-hidratador/actions/workflows/scorecard.yml)
 [![Security Scan](https://github.com/hamanakam1/el-hidratador/actions/workflows/security-scan.yml/badge.svg)](https://github.com/hamanakam1/el-hidratador/actions/workflows/security-scan.yml)
@@ -42,8 +70,8 @@ Ticket Board ──► [ El Hidratador ] ──► Taskrivet ──► Operator 
 
 ## Why it exists
 
-Autonomous execution fails in three predictable ways, and all three are context
-problems wearing a costume:
+Autonomous execution fails in three predictable ways, and all three are context problems wearing a
+costume:
 
 1. **The worker starts with fifty words and a repository of four million.**
 2. **Two workers touch the same resource and neither knows about the other.**
@@ -54,7 +82,7 @@ El Hidratador is built around refusing those three failures:
 | Failure | What El Hidratador does |
 |---------|--------------------------|
 | Underspecified execution | Expands a ticket into a byte-budgeted, self-describing instruction |
-| Resource collision | Grants execution leases and refuses overlapping scopes |
+| Resource collision | Grants execution leases and refuses overlapping scope keys |
 | Self-acceptance | Separates *finished* from *accepted*; only an operator accepts |
 
 ---
@@ -64,35 +92,19 @@ El Hidratador is built around refusing those three failures:
 These hold for every code path in this repository:
 
 1. **The core is standard library only.** No network, no shell execution, no telemetry.
-2. **Nothing is accepted implicitly.** `finish()` creates `REVIEW`; only
-   `decide(accept)` creates `DONE`.
-3. **Eligibility is not authorization.** Routing can recommend a target and can
-   never authorize one.
-4. **Declared is not measured.** Token counts are reported by workers, never metered
-   by a provider. `measured_cash_cost` is `null` on purpose.
-5. **Context is untrusted reference data.** Attached context is quoted inside
-   explicit banners and never treated as an instruction.
-6. **Every refusal is visible.** Conflicts, budget stops, stagnation, and omitted
-   context are reported, not swallowed.
+2. **Nothing is accepted implicitly.** `finish()` creates `REVIEW`; only `decide(accept)` creates
+   `DONE`.
+3. **Eligibility is not authorization.** Routing can recommend a target and can never authorize one.
+4. **Declared is not measured.** Token counts are reported by workers, never metered by a provider.
+   `measured_cash_cost` is `null` on purpose.
+5. **Context is untrusted reference data.** Attached context is quoted inside explicit banners and
+   never treated as an instruction.
+6. **Every refusal is visible.** Conflicts, budget stops, stagnation, and omitted context are
+   reported, not swallowed.
 
 ---
 
-## Install
-
-```bash
-# From a checkout
-python3 -m pip install -e .
-
-# Or run without installing
-python3 -m el_hidratador --help
-```
-
-Python 3.11 or newer. No runtime dependencies. The optional adapters use the `gh`
-and `docker` command line tools, and only when you invoke them.
-
----
-
-## Quick start
+## The five-minute path
 
 ```bash
 # 1. Create the ledger
@@ -138,7 +150,7 @@ Every command prints exactly one JSON object. Nothing else is written to stdout.
 |---------|-------------|
 | **Bounded context** | Every ticket carries an objective, acceptance criteria, scope keys, and a token budget |
 | **Explicit ownership** | `start()` acquires a lease; an expired lease blocks the task until reconciliation |
-| **Resource scope** | Tickets reserve resource keys; two tickets with overlapping scopes cannot run at once |
+| **Resource scope** | Tickets reserve scope keys; two tickets with overlapping scope cannot run at once |
 | **Evidence at every step** | `checkpoint()` requires summary, evidence, next step, and cumulative tokens |
 | **Cumulative budget** | Token budgets survive retries; tokens never decrease |
 | **Stagnation detection** | Three checkpoints with identical evidence block the task as `no_progress` |
@@ -194,7 +206,7 @@ INBOX → READY → IN_PROGRESS ⇄ BLOCKED → REVIEW → ACCEPTED → DONE
 ### Module map
 
 | Module | Responsibility | Network |
-|--------|----------------|---------|
+|---------|----------------|---------|
 | `core.py` | Ledger, lifecycle, leases, budgets, failures, events, handoffs | none |
 | `errors.py` | Typed error taxonomy | none |
 | `context_expander.py` | Context injection, byte budgets, prompt rendering | none |
@@ -204,7 +216,25 @@ INBOX → READY → IN_PROGRESS ⇄ BLOCKED → REVIEW → ACCEPTED → DONE
 | `github_sync.py` | Observations, outbox, reconciliation | `gh` CLI only |
 | `dashboard.py` | Local dashboard preview | loopback HTTP only |
 | `tickets.py` | Portable file-backed ticket storage | none |
+| `schema.py` | Published JSON Schemas and a dependency-free validator | none |
+| `replay.py` | Rebuild a task's lifecycle from its event log | none |
+| `doctor.py` | Environment checks | none |
+| `demo.py` | The narrated demonstration | none |
 | `cli.py` | JSON-first command line interface | none |
+
+### Project layout
+
+```text
+el_hidratador/     the package: core plus adapters
+tests/             192 tests, one file per area
+docs/              the documentation you are reading
+docs/adr/          architecture decision records
+docs/wiki/         pages published to the GitHub wiki
+examples/          a runnable walkthrough, a ticket, a config, a sandbox spec
+schema/            the published JSON Schemas
+templates/         ticket and checkpoint templates
+scripts/           repository helpers
+```
 
 ---
 
@@ -219,11 +249,12 @@ INBOX → READY → IN_PROGRESS ⇄ BLOCKED → REVIEW → ACCEPTED → DONE
 | **GitHub** | `gh` CLI only, no token ever read by this package, 30 s timeout, 16 MiB cap |
 | **Secrets** | Never in the repository; injected through the environment at deploy time |
 
-Local state is created with restrictive permissions: the ledger directory is `0700`
-and the ledger file is `0600`.
+Local state is created with restrictive permissions: the ledger directory is `0700` and the ledger
+file is `0600`. `hidratador doctor` checks all of it and reports what it finds without changing
+anything.
 
 See [SECURITY.md](SECURITY.md) for the reporting process and
-[`docs/security.md`](docs/security.md) for the full model.
+[docs/security.md](docs/security.md) for the full model.
 
 ---
 
@@ -232,13 +263,20 @@ See [SECURITY.md](SECURITY.md) for the reporting process and
 | Page | What it covers |
 |------|----------------|
 | [docs/index.md](docs/index.md) | Documentation home and reading order |
+| [docs/getting-started.md](docs/getting-started.md) | The five-minute path |
+| [docs/glossary.md](docs/glossary.md) | Every domain term, defined once |
+| [docs/faq.md](docs/faq.md) | Questions newcomers actually ask |
+| [docs/install.md](docs/install.md) | Every install path |
 | [docs/architecture.md](docs/architecture.md) | Layers, data model, end-to-end sequence |
 | [docs/cli-reference.md](docs/cli-reference.md) | Every command, flag, and output key |
 | [docs/context-and-packets.md](docs/context-and-packets.md) | Budgeting, priority, omission, untrusted context |
 | [docs/dag-and-sandbox.md](docs/dag-and-sandbox.md) | Node parsing, ordering, manifest, sandbox spec |
 | [docs/github-sync.md](docs/github-sync.md) | Observations, outbox, idempotency, reconciliation |
 | [docs/failure-playbook.md](docs/failure-playbook.md) | Every failure category and its recovery path |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Symptom, cause, fix |
 | [docs/operations.md](docs/operations.md) | Day-to-day operation, backup, runbooks |
+| [docs/development.md](docs/development.md) | How to work on the project |
+| [docs/community.md](docs/community.md) | How to get help and how decisions are made |
 | [docs/security.md](docs/security.md) | Trust model and boundaries |
 | [docs/roadmap.md](docs/roadmap.md) | What is next, and what is explicitly not planned |
 | [examples/walkthrough.md](examples/walkthrough.md) | A complete runnable session |
@@ -262,8 +300,12 @@ mypy el_hidratador/
 make check
 ```
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first — the
-acceptance rules there are the same rules the code follows.
+There is also a [devcontainer](.devcontainer/devcontainer.json): open the repository in a container
+and the toolchain is already installed.
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first — the acceptance rules
+there are the same rules the code follows, and [docs/development.md](docs/development.md) has the
+step-by-step version.
 
 ---
 
@@ -271,13 +313,15 @@ acceptance rules there are the same rules the code follows.
 
 | Feature | Where |
 |---------|-------|
-| Issue forms (bug, feature, question, docs) | [New issue](https://github.com/hamanakam1/el-hidratador/issues/new/choose) |
+| Issue forms (bug, feature, question, docs, RFC, small task) | [New issue](https://github.com/hamanakam1/el-hidratador/issues/new/choose) |
 | Discussions | [github.com/hamanakam1/el-hidratador/discussions](https://github.com/hamanakam1/el-hidratador/discussions) |
 | Wiki | [github.com/hamanakam1/el-hidratador/wiki](https://github.com/hamanakam1/el-hidratador/wiki) |
 | Roadmap | [docs/roadmap.md](docs/roadmap.md) and the `roadmap` label |
 | Releases | [github.com/hamanakam1/el-hidratador/releases](https://github.com/hamanakam1/el-hidratador/releases) |
 | Security advisories | [SECURITY.md](SECURITY.md) |
 | Published documentation | [hamanakam1.github.io/el-hidratador](https://hamanakam1.github.io/el-hidratador/) |
+| Container image | `ghcr.io/hamanakam1/el-hidratador` |
+| Citation metadata | [CITATION.cff](CITATION.cff) |
 
 ---
 

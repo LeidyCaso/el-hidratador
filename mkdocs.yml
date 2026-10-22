@@ -57,14 +57,22 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Getting started: getting-started.md
+  - Glossary: glossary.md
+  - FAQ: faq.md
+  - Install: install.md
   - Architecture: architecture.md
   - CLI reference: cli-reference.md
   - Context and packets: context-and-packets.md
   - DAG and sandbox: dag-and-sandbox.md
   - GitHub sync: github-sync.md
   - Failure playbook: failure-playbook.md
+  - Troubleshooting: troubleshooting.md
   - Operations: operations.md
   - Security: security.md
+  - Development: development.md
+  - Community: community.md
+  - Decisions: adr/index.md
   - Roadmap: roadmap.md
 
 extra:

@@ -68,7 +68,7 @@ jobs:
           load: true
           push: false
           tags: ${{ steps.tags.outputs.tags }}
-          cache-from: type=gha
+          cache-from: type=gha,mode=max
           cache-to: type=gha,mode=max
 
       - name: Verify the image
@@ -88,7 +88,7 @@ jobs:
           tags: ${{ steps.tags.outputs.tags }}
           provenance: true
           sbom: true
-          cache-from: type=gha
+          cache-from: type=gha,mode=max
 
       - name: Write the publish summary
         env:

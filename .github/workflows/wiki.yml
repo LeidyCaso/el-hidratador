@@ -56,12 +56,15 @@ jobs:
           meta = json.load(open(sys.argv[1], encoding="utf-8"))
           published = meta["ssh_key_fingerprints"]
           for line in open(sys.argv[2], encoding="utf-8"):
+              line = line.strip()
+              if not line or line.startswith("#"):
+                  continue
               parts = line.split()
               if len(parts) < 3:
                   continue
-              digest = hashlib.sha256(base64.b64decode(parts[1])).digest()
-              fingerprint = "SHA256:" + base64.b64encode(digest).decode().rstrip("=")
-              if fingerprint in published:
+              digest = hashlib.sha256(base64.b64decode(parts[2])).digest()
+              fingerprint = base64.b64encode(digest).decode().rstrip("=")
+              if fingerprint in published.values():
                   with open(sys.argv[3], "w", encoding="utf-8") as handle:
                       handle.write(line)
                   break

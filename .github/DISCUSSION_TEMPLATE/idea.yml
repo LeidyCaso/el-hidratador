@@ -1,43 +1,45 @@
----
-title: Propose an idea
-labels: []
+title: "Propose an idea"
 body:
   - type: markdown
     attributes:
       value: |
-        An idea is a proposal, not a decision. Describe the problem and the outcome you want, and
-        let the discussion settle the shape before anyone writes code.
+        Describe the outcome you want, not the feature you imagine. An idea
+        that can be measured is easier to accept than an idea that lists
+        features.
 
-        If the shape is already known and the change touches a contract, open a
-        [request for comments](https://github.com/hamanakam1/el-hidratador/issues/new?template=rfc.yml)
-        instead.
   - type: textarea
     id: problem
     attributes:
-      label: What is the problem?
-      description: The situation that makes you want this. Not the solution.
-      placeholder: When a worker resumes a task, it cannot tell which context it already read...
+      label: The problem
+      description: What is missing or wrong today, and who it affects.
+      placeholder: |
+        The repeated part of a context pack is re-expanded by hand for every
+        handoff, and the repetition is not observable in the ledger.
     validations:
       required: true
+
   - type: textarea
     id: outcome
     attributes:
-      label: What would be true when this is done?
-      description: An observable outcome, not a feature name.
-      placeholder: A resumed worker does not re-read context it already consumed.
+      label: The outcome you want
+      description: |
+        What should be observable once the idea is implemented. Say how you
+        would check it.
     validations:
       required: true
+
   - type: textarea
     id: tried
     attributes:
-      label: What have you already tried?
-      description: Workarounds, experiments, or a rejected approach.
+      label: What you have already tried
+      description: The workarounds, scripts, or experiments you already used.
     validations:
       required: false
+
   - type: dropdown
     id: layer
     attributes:
-      label: Which layer does this touch?
+      label: Which layer it touches
       options:
         - Core ledger
         - Context expansion
@@ -51,12 +53,15 @@ body:
         - Build and release
     validations:
       required: true
+
   - type: checkboxes
-    id: checks
+    id: checklist
     attributes:
-      label: Before you post
+      label: Checklist
       options:
-        - label: I searched the existing issues and discussions.
+        - label: I searched the existing issues and discussions for this idea.
           required: true
-        - label: I did not include credentials, tokens, or private ticket data.
+        - label: I did not include credentials, secrets, or private ticket data in this post.
+          required: true
+        - label: The idea keeps eligibility, authorization, execution, and acceptance as separate steps.
           required: true

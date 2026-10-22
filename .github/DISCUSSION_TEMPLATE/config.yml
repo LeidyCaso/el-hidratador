@@ -1,15 +1,20 @@
----
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: Security vulnerability
+  - name: Security policy
     url: https://github.com/hamanakam1/el-hidratador/security/policy
-    about: Report a vulnerability privately. Never open a public issue for one.
-  - name: Question about using the tool
+    about: >-
+      Report a vulnerability privately. Do not open a public discussion for a
+      security problem.
+  - name: Support and questions
     url: https://github.com/hamanakam1/el-hidratador/discussions/categories/q-a
-    about: Usage questions belong in Discussions, where the answer helps the next reader too.
-  - name: Propose an idea
+    about: >-
+      Ask how to use el-hidratador, and get an answer from another user or
+      from a maintainer.
+  - name: Ideas
     url: https://github.com/hamanakam1/el-hidratador/discussions/categories/ideas
-    about: For ideas that are not yet a change. Use a request for comments when the shape is known.
+    about: >-
+      Propose a feature or an improvement before any code is written.
   - name: Announcements
     url: https://github.com/hamanakam1/el-hidratador/discussions/categories/announcements
-    about: Release notes and factory-wide notices.
+    about: >-
+      Read release notes, maintenance notices, and other project news.

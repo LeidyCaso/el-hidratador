@@ -1,40 +1,53 @@
----
-title: Introduce yourself
-labels: []
+title: "Introduce yourself"
 body:
   - type: markdown
     attributes:
       value: |
-        Welcome. Tell us who you are and what you are building with the factory.
+        Say hello. Pick the discussion category that fits your introduction
+        best when you post it.
 
-        There is no expectation here. A sentence is enough.
   - type: textarea
     id: who
     attributes:
-      label: Who are you?
-      description: A name, a handle, or however you would like to be addressed.
-      placeholder: I maintain a small tool that...
+      label: Who you are
+      description: A short introduction. Name, role, and what you work with.
+      placeholder: |
+        I maintain a small platform team. I write Go and Python, and I spend
+        most of my time on build and release tooling.
     validations:
       required: true
+
   - type: textarea
     id: building
     attributes:
-      label: What are you building with it?
-      description: The task, the pipeline, or the experiment.
-      placeholder: I am hydrating tickets for a documentation pipeline...
+      label: What you are building with the factory
+      description: |
+        The tool, the pipeline, or the workflow you are putting together.
+        Describe the outcome, not the stack.
+      placeholder: |
+        I hydrate tickets from a Markdown board into reviewable execution
+        state, and I want the acceptance gate to stay visible to the reviewer.
     validations:
       required: false
+
   - type: textarea
     id: help
     attributes:
-      label: What would you like help with?
-      description: A question, a blocker, or an idea you want to think through.
+      label: What you would like help with
+      description: |
+        The question, the blocker, or the feedback you are looking for.
+      placeholder: |
+        I am not sure whether the byte budget applies to the attached
+        context only, or to the whole packet.
     validations:
       required: false
+
   - type: checkboxes
-    id: checks
+    id: checklist
     attributes:
-      label: Before you post
+      label: Checklist
       options:
-        - label: I did not include credentials, tokens, or private ticket data.
+        - label: I did not include credentials, secrets, or private ticket data in this post.
+          required: true
+        - label: I did not paste a transcript, an account detail, or an internal hostname.
           required: true

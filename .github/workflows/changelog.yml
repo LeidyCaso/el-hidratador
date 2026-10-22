@@ -2,22 +2,24 @@ name: Changelog
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - "el_hidratador/**"
       - "tests/**"
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: changelog-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  changelog:
-    name: the changelog records the change
+  check:
+    name: check that the changelog was updated
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: write
@@ -25,41 +27,63 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The full history is needed so the base branch can be compared with
+          # the pull request.
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check that the changelog was updated
+      - name: Check whether the changelog was updated
+        # Only the list of changed file names is read. Nothing from the pull
+        # request is executed.
         id: changelog
         env:
-          BASE: ${{ github.base_ref }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          if [ -z "${BASE}" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git fetch --quiet --no-tags origin "${BASE}"
-          changed="$(git diff --name-only "origin/${BASE}...HEAD")"
-          echo "Files changed:"
-          echo "${changed}"
-          if echo "${changed}" | grep -qx "CHANGELOG.md"; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+          changed="$(git diff --name-only "origin/${BASE_REF}...HEAD")"
+          if printf '%s\n' "${changed}" | grep -qx "CHANGELOG.md"; then
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            echo "CHANGELOG.md is part of this pull request."
           else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## The changelog was not updated"
+              echo
+              echo "CHANGELOG.md is not part of this pull request."
+              echo
+              echo "The changelog is written for the person who upgrades, not for the"
+              echo "person who commits. Add an entry under \`## [Unreleased]\` and push"
+              echo "it in the same pull request."
+              echo
+              echo "Changed files:"
+              echo
+              printf '%s\n' "${changed}" | sed 's/^/- `/; s/$/`/'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Explain what is missing
-        if: steps.changelog.outputs.changed != 'true'
+      - name: Explain the failure on the pull request
+        if: ${{ steps.changelog.outputs.updated != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          set -uo pipefail
+          body="${RUNNER_TEMP}/changelog-comment.md"
           {
-            echo "## The changelog was not updated"
+            echo "CHANGELOG.md is not part of this pull request."
             echo
-            echo "This pull request changes the code but not \`CHANGELOG.md\`."
-            echo "The changelog is written for the person who upgrades, so it has to say"
-            echo "what changed for them."
-            echo
-            echo "Add an entry under \`## [Unreleased]\`, or say here why the change does"
-            echo "not affect anyone who is not running the source."
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "::error title=Changelog missing::CHANGELOG.md was not updated in this pull request."
+            echo "The changelog is written for the person who upgrades, not for the"
+            echo "person who commits. Add an entry under \`## [Unreleased]\` in"
+            echo "\`CHANGELOG.md\` and push it in the same pull request."
+          } > "${body}"
+          if ! gh pr comment "${PR_NUMBER}" --repo "${REPOSITORY}" --body-file "${body}"; then
+            echo "the pull request could not be commented on" >&2
+          fi
+
+      - name: Fail when the changelog was not updated
+        if: ${{ steps.changelog.outputs.updated != 'true' }}
+        run: |
+          set -euo pipefail
+          echo "CHANGELOG.md is not part of this pull request." >&2
           exit 1

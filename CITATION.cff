@@ -1,32 +1,30 @@
 cff-version: 1.2.0
-title: "El Hidratador"
 message: "If you use this software, please cite it as below."
+title: "El Hidratador"
 type: software
 authors:
   - family-names: "Hamanaka"
     given-names: "Michael"
 repository-code: "https://github.com/hamanakam1/el-hidratador"
-url: "https://hamanakam1.github.io/el-hidratador/"
 abstract: >-
-  El Hidratador is the context expansion and execution staging engine of a local-first AI
-  software factory. It turns a dry semantic ticket into wet execution state: expanded
-  context, an ordered execution DAG, a narrow sandbox specification, and a routed compute
-  profile. It never executes work itself and never accepts work on an operator's behalf; the
-  acceptance gate is explicit, the core is standard library only, and every refusal is
-  visible.
+  El Hidratador is a context expansion and execution staging engine. It
+  hydrates dry tickets into wet, reviewable execution state, and it keeps
+  eligibility, authorization, execution, and acceptance as separate steps.
 keywords:
-  - ai-factory
-  - agent-orchestration
-  - context-engineering
-  - local-first
-  - multi-agent
-  - orchestration
-  - task-orchestration
+  - "context engineering"
+  - "task orchestration"
+  - "orchestration"
+  - "local-first"
+  - "sandbox"
+  - "dag"
+  - "multi-agent"
 license: MIT
 version: 0.2.0
 date-released: "2026-10-22"
 identifiers:
   - type: other
-    value: "ghcr.io/hamanakam1/el-hidratador"
+    value: "https://github.com/hamanakam1/el-hidratador"
+    description: "Source repository"
   - type: other
-    value: "https://pypi.org/project/el-hidratador/"
+    value: "ghcr.io/hamanakam1/el-hidratador"
+    description: "Container image"

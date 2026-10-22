@@ -4,24 +4,21 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "The tag to build (defaults to the current ref)"
-        required: false
-        type: string
 
 permissions:
   contents: read
 
 concurrency:
   group: container-${{ github.workflow }}-${{ github.ref }}
+  # A tag is already pushed. The image it names must not change halfway
+  # through the publish.
   cancel-in-progress: false
 
 jobs:
   publish:
-    name: build, verify, and publish the image
+    name: build and publish the container image
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -31,41 +28,76 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Resolve the image tags
+        id: tags
+        env:
+          REF: ${{ github.ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "${REF#refs/tags/}" != "${REF}" ]; then
+            version="${REF#refs/tags/}"
+          else
+            version="sha-$(git rev-parse --short HEAD)"
+          fi
+          image="ghcr.io/$(printf '%s' "${REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "tags=${image}:${version},${image}:latest" >> "$GITHUB_OUTPUT"
 
-      - name: Log in to the container registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Log in to the GitHub container registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build the image for verification
-        id: build
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      - name: Build the image
+        # The image is loaded into the local store so it can be verified
+        # before anything is published. The local store cannot carry the
+        # attestations, so they are attached by the publish step.
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
-          push: false
-          # The local docker exporter cannot carry a manifest list, so the
-          # provenance and the SBOM are attached by the publishing build.
+          file: ./Dockerfile
           load: true
-          tags: ghcr.io/${{ github.repository }}:${{ inputs.tag || github.ref_name }}
+          push: false
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Verify the image before it is published
+      - name: Verify the image
+        env:
+          IMAGE: ${{ steps.tags.outputs.image }}
+          VERSION: ${{ steps.tags.outputs.version }}
         run: |
           set -euo pipefail
-          image="ghcr.io/${{ github.repository }}:${{ inputs.tag || github.ref_name }}"
-          docker run --rm "$image" --version
-          docker run --rm "$image" --help
+          docker run --rm "${IMAGE}:${VERSION}" --help
 
       - name: Publish the image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
+          file: ./Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ inputs.tag || github.ref_name }}
-            ghcr.io/${{ github.repository }}:latest
+          tags: ${{ steps.tags.outputs.tags }}
           provenance: true
           sbom: true
+          cache-from: type=gha
+
+      - name: Write the publish summary
+        env:
+          IMAGE: ${{ steps.tags.outputs.image }}
+          VERSION: ${{ steps.tags.outputs.version }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Container image"
+            echo
+            echo "Published \`${IMAGE}:${VERSION}\` and \`${IMAGE}:latest\`."
+            echo
+            echo "The build carries a provenance attestation and an SBOM."
+          } >> "$GITHUB_STEP_SUMMARY"

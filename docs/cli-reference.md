@@ -867,6 +867,25 @@ hidratador handoff M-1002 --max-bytes 4000 --workdir /tmp/work/M-1002
 `authorized` is always `false`. The full manifest, packet, and sandbox shapes are documented in
 [DAG and sandbox](dag-and-sandbox.md) and [Context and packets](context-and-packets.md).
 
+### `handoff --schema`
+
+Print the published schema of the handoff payload instead of building one.
+
+```bash
+hidratador handoff M-1001 --schema
+```
+
+```json
+{
+  "task_id": "M-1001",
+  "schema": "handoff",
+  "definition": {
+    "$id": "https://hamanakam1.github.io/el-hidratador/schema/handoff.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema"
+  }
+}
+```
+
 ### `profile-add`
 
 Declare a compute profile. A declaration is not proof.

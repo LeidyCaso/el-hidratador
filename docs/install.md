@@ -102,7 +102,7 @@ The container image is Linux only.
 ## Path 4 — the devcontainer
 
 The repository does not ship a `.devcontainer/` directory, so there is no devcontainer to open
-today. If you want one, add it to your own fork. The image built above is a working base:
+today. If you want one, add it to your own fork. A devcontainers base image is a working base:
 
 ```text
 .devcontainer/devcontainer.json
@@ -127,8 +127,19 @@ Open it with "Reopen in Container", then run the checks inside the container:
 make check
 ```
 
-The ledger stays on your host in that setup, because the package reads `$HIDRATADOR_DB` and
-defaults to `~/.el-hidratador/ledger.sqlite` inside the container's home directory.
+The ledger lives in the container's home directory by default. To keep it on your host instead,
+mount a directory and point `$HIDRATADOR_DB` at it:
+
+```json
+{
+  "mounts": [
+    "source=${localWorkspaceFolder}/.hidratador,target=/home/vscode/.el-hidratador,type=bind"
+  ],
+  "containerEnv": {
+    "HIDRATADOR_DB": "/home/vscode/.el-hidratador/ledger.sqlite"
+  }
+}
+```
 
 ---
 

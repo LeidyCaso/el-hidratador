@@ -213,6 +213,9 @@ def build_parser() -> argparse.ArgumentParser:
     handoff.add_argument("id")
     handoff.add_argument("--max-bytes", type=int, default=12000)
     handoff.add_argument("--workdir", default=None)
+    handoff.add_argument(
+        "--schema", action="store_true", help="print the published handoff schema instead"
+    )
 
     profile_add = sub.add_parser("profile-add", help="declare a compute profile")
     profile_add.add_argument("id")
@@ -551,6 +554,8 @@ def _cmd_dag(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
 
 
 def _cmd_handoff(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
+    if args.schema:
+        return {"task_id": args.id, "schema": "handoff", "definition": schema_for("handoff")}
     ticket = ledger.task(args.id)
     dag = build_dag(
         args.id,

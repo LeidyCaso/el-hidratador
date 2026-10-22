@@ -175,11 +175,11 @@ hidratador --compact triage M-1001 | jq '{id, status, scope}'
 ```json
 {
   "id": "M-1001",
+  "status": "READY",
   "scope": [
     "repo/api",
     "repo/edge"
-  ],
-  "status": "READY"
+  ]
 }
 ```
 

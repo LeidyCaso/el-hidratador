@@ -54,7 +54,7 @@ Every command prints one JSON object. A refusal looks like this:
 
 ## A task is stuck in `BLOCKED`
 
-**Message.** No error — the task is simply in `BLOCKED`.
+**Message.** No error — the task is in `BLOCKED` and stays there.
 
 **Why.** Four things block a task: an expired lease, a cumulative budget that was reached, three
 consecutive checkpoints with an identical evidence hash, or an explicit `fail` call. The cause is

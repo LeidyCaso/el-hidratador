@@ -266,6 +266,12 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertFalse(payload["ok"])
 
+    def test_handoff_schema_prints_the_published_contract(self) -> None:
+        code, payload = self._run("handoff", "M-1001", "--schema")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["schema"], "handoff")
+        self.assertIn("$id", payload["definition"])
+
     def test_sandbox_apply_prints_the_command_without_creating_it(self) -> None:
         code, payload = self._run(
             "sandbox-apply", "--id", "M-1001", "--workdir", str(Path(self.tmp.name))

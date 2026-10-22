@@ -20,24 +20,24 @@ make help
 ```
 
 ```text
-  help             Show the available targets
-  install          Install the package
-  dev              Install the package with development extras
-  test             Run the test suite
-  lint             Lint the package
-  lint-docs        Lint the Markdown, the YAML, and the shell scripts
-  format           Format the package
-  format-check     Verify formatting without writing
-  typecheck        Run the type checker
-  coverage         Run the test suite with a coverage report
-  check            Run every check the CI runs
-  build            Build the sdist and the wheel
-  clean            Remove build and test artifacts
-  docs             Build the documentation site
-  serve            Serve the documentation site locally
-  wiki             Publish the pages in docs/wiki to the repository wiki
-  docker-build     Build the container image
-  docker-run       Run the container image
+  help            Show the available targets
+  install         Install the package
+  dev             Install the package with development extras
+  test            Run the test suite
+  lint            Lint the package
+  lint-docs       Lint the Markdown, the YAML, and the shell scripts
+  format          Format the package
+  format-check    Verify formatting without writing
+  typecheck       Run the type checker
+  coverage        Run the test suite with a coverage report
+  check           Run every check the CI runs
+  build           Build the sdist and the wheel
+  clean           Remove build and test artifacts
+  docs            Build the documentation site
+  serve           Serve the documentation site locally
+  wiki            Publish the pages in docs/wiki to the repository wiki
+  docker-build    Build the container image
+  docker-run      Run the container image
 ```
 
 ---
@@ -151,7 +151,7 @@ _HANDLERS: dict[str, Callable[[argparse.Namespace, Ledger], dict[str, Any]]] = {
 }
 ```
 
-**4. Put the behaviour in the right module.** Ledger state goes in `el_hidratador/core.py` as a
+**4. Put the behavior in the right module.** Ledger state goes in `el_hidratador/core.py` as a
 method on `Ledger`, wrapped in `with self.transaction():`, and every mutation calls
 `self._event(...)` so the audit log stays complete. Pure functions go in the module that owns
 the concern: `context_expander.py`, `dag.py`, `hardware_router.py`, `schema.py`, `tickets.py`.

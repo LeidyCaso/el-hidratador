@@ -81,7 +81,7 @@ hidratador start M-1001 --owner terminal-2
 
 Open a [feature request](https://github.com/hamanakam1/el-hidratador/issues/new/choose) before
 you write the code. The form asks for the problem, the proposed solution in terms of observable
-behaviour, the alternatives you considered, the pipeline layer it touches, and — the one people
+behavior, the alternatives you considered, the pipeline layer it touches, and — the one people
 skip — the **privacy and telemetry impact**.
 
 State explicitly whether the change adds network access, telemetry, local state, or credential
@@ -107,9 +107,9 @@ The claim is a scope, in the same sense the ledger uses the word. Say which part
 > matching test, and I will not touch the adapter files.
 
 That keeps two people from writing the same function and keeps a change inside the boundary it
-claims. If you are working inside El Hidratador itself, the scope keys are the module paths —
-`area/ledger`, `area/cli`, `area/context`, `area/dag`, `area/sandbox`, `area/github`,
-`area/hardware`, `area/dashboard`, `area/docs`, `area/tests`, `area/ci`.
+claims. If you are working inside El Hidratador itself, the scope keys are the module paths,
+which the repository labels `area/ledger`, `area/cli`, `area/context`, `area/dag`, `area/sandbox`,
+`area/github`, `area/hardware`, `area/dashboard`, `area/docs`, `area/tests`, and `area/ci`.
 
 If you start and then stop, say so on the issue and release the claim. A silent stall blocks
 everyone else.
@@ -137,13 +137,15 @@ respected.
 The repository is small enough that decisions are made in the open.
 
 - **Changes** are proposed as pull requests and reviewed. The pull request template asks for the
-  behaviour change, the ticket it belongs to, how it was verified, and a checklist of the
+  behavior change, the ticket it belongs to, how it was verified, and a checklist of the
   boundaries it respects.
 - **Architecture decisions** are recorded as ADRs under `docs/adr/`, in the standard shape:
   context, decision, consequences, and the alternatives that were considered. Each one has a
   status of `Accepted`.
 - **Disagreement** is settled by the reasoning, not by seniority. If you think a decision is
-  wrong, open an issue that states the case. If it turns out to be right, the ADR gets amended.
+  wrong, open an issue that states the case. If it turns out to be right, a new record with the
+  next number is added — an accepted record is not edited, because what was believed at the time
+  is worth more than a tidy file.
 - **Security issues** are handled privately, through
   [SECURITY.md](https://github.com/hamanakam1/el-hidratador/blob/main/SECURITY.md), and are
   disclosed after a timeline is agreed with the reporter.

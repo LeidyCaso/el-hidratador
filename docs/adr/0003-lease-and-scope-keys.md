@@ -46,7 +46,7 @@ mutating command runs `reconcile()` first, so no daemon has to watch the clock.
   lease loses its ownership even though it is still alive.
 - A task in `BLOCKED` or `REVIEW` keeps its reservation, so a forgotten review holds a resource
   and blocks other work until an operator decides.
-- Lease duration is a guess about worker behaviour, and a wrong guess shows up as either spurious
+- Lease duration is a guess about worker behavior, and a wrong guess shows up as either spurious
   expiry or an over-long hold.
 
 ## Alternatives considered

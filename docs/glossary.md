@@ -11,7 +11,7 @@ The rule that a task reaches `DONE` only through an explicit `decide(accept)`, a
 else.
 
 In practice: `finish` produces `REVIEW`. No flag, default, or shortcut skips the decision. A
-payload that claims execution is authorised still carries `authorized: false`.
+payload that claims execution is authorized still carries `authorized: false`.
 
 ## Accepted work
 
@@ -152,7 +152,7 @@ state, not permission to execute, and `authorized` is always `false`.
 The act of expanding a dry ticket into a wet execution packet.
 
 In practice: `pack` produces the structure and `expand` produces the structure plus the rendered
-prompt. Both enforce the same byte budget and both report every omission.
+prompt. Both enforce a byte budget and both report every omission by hash and reason.
 
 ## Idempotency key
 
@@ -180,8 +180,8 @@ a second worker asking for the same scope is refused.
 The moment a lease's `lease_until` passes without renewal, after which the session is `expired`,
 the task is `BLOCKED`, and a `lease_expired` failure is recorded.
 
-In practice: `reconcile` detects it, and `start`, `checkpoint`, `finish`, `decide`, `pack`, and
-`status` all reconcile first. No daemon has to watch the clock.
+In practice: `reconcile` detects it, and `start`, `checkpoint`, `finish`, `fail`, `decide`, `pack`,
+and `status` all reconcile first. No daemon has to watch the clock.
 
 ## Manifest
 
@@ -251,7 +251,8 @@ A declared compute profile: the task kinds it handles, the context capacity it c
 class, and how long the declaration holds.
 
 In practice: a profile is an operator declaration, not provider verification. It expires, and
-after it expires the profile is no longer eligible.
+after it expires the profile is no longer eligible. Declared profiles are evaluated by
+`Ledger.route()` in the library; the `route` command evaluates the built-in local target set.
 
 ## Reconciliation
 
@@ -343,7 +344,7 @@ Attached context treated as reference data: quoted inside
 an instruction or as authorization.
 
 In practice: a context body that reads like a command is still a string in a document. It cannot
-authorise anything.
+authorize anything.
 
 ## WAL
 

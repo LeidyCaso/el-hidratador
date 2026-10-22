@@ -26,16 +26,19 @@ opt-in and time-bounded.
 Because this package does not meter providers, so it has no honest way to compute either number.
 The token counts it does carry are declared by the worker that reported them, not measured
 against a provider's tokenizer. A null is the truthful value; an estimate presented as a
-measurement is not. `token_estimate` is reported separately and is explicitly a
-characters-divided-by-four heuristic.
+measurement is not. `token_estimate` is reported separately and is explicitly a character-count
+heuristic of roughly four characters per token.
 
 ## Why can a route never be authorized?
 
 Because eligibility and permission are different questions, and only a person can answer the
-second one. `route` evaluates each declared target against the task kind, the declared context
-capacity, the cost class, and the health of the target, then reports `eligible` with reasons.
-`execution_authorized` is hard-coded to `false` in the route result, in the dispatch plan, in the
-manifest, and in the handoff. A paid profile is never eligible for autonomous dispatch at all.
+second one. `route` evaluates each target against the task kind, the declared context capacity,
+the cost class, the health of the target, and the class of the work, then reports `eligible` with
+the reasons it was refused. `execution_authorized` is hard-coded to `false` in the route result,
+in the dispatch plan, in the manifest, and in the handoff. A paid profile is never eligible for
+autonomous dispatch at all. The `route` command evaluates the built-in local target set —
+`local-heavy`, `local-light`, and `edge-staging`. The profiles you declare with `profile-add` are
+stored in the ledger and evaluated by `Ledger.route()` in the library.
 
 ## What happens if a worker dies?
 

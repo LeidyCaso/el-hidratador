@@ -115,9 +115,7 @@ class HardwareRouterTests(unittest.TestCase):
         self.assertEqual(result.options[0]["reasons"], [])
 
     def test_a_physical_target_is_bound_by_the_class_rule(self) -> None:
-        target = Target(
-            id="node", class_name=CLASS_HEAVY, cost="zero_incremental", kinds=["code"]
-        )
+        target = Target(id="node", class_name=CLASS_HEAVY, cost="zero_incremental", kinds=["code"])
         result = evaluate({"id": "M-1", "kind": "code"}, [target], 1024)
         self.assertFalse(result.options[0]["eligible"])
 

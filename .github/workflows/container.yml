@@ -41,16 +41,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build the image
+      - name: Build the image for verification
         id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           push: false
+          # The local docker exporter cannot carry a manifest list, so the
+          # provenance and the SBOM are attached by the publishing build.
           load: true
           tags: ghcr.io/${{ github.repository }}:${{ inputs.tag || github.ref_name }}
-          provenance: true
-          sbom: true
 
       - name: Verify the image before it is published
         run: |

@@ -1,4 +1,4 @@
-.PHONY: help install dev test lint lint-docs format typecheck coverage check build clean docs serve wiki docker-build docker-run
+.PHONY: help install dev test lint lint-docs format typecheck coverage check build clean docs serve wiki demo doctor docker-build docker-run
 
 PYTHON ?= python3
 PACKAGE := el_hidratador
@@ -55,6 +55,12 @@ serve: ## Serve the documentation site locally
 
 wiki: ## Publish the pages in docs/wiki to the repository wiki
 	./scripts/publish_wiki.sh
+
+demo: ## Run the narrated demonstration on a scratch ledger
+	hidratador demo --text
+
+doctor: ## Check whether this machine is ready
+	hidratador doctor
 
 docker-build: ## Build the container image
 	docker build -t el-hidratador:local .

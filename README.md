@@ -263,6 +263,7 @@ See [SECURITY.md](SECURITY.md) for the reporting process and
 | Page | What it covers |
 |------|----------------|
 | [docs/index.md](docs/index.md) | Documentation home and reading order |
+| [docs/adr/index.md](docs/adr/index.md) | The architecture decision records: what was decided, and what it cost |
 | [docs/getting-started.md](docs/getting-started.md) | The five-minute path |
 | [docs/glossary.md](docs/glossary.md) | Every domain term, defined once |
 | [docs/faq.md](docs/faq.md) | Questions newcomers actually ask |
@@ -314,6 +315,7 @@ step-by-step version.
 | Feature | Where |
 |---------|-------|
 | Issue forms (bug, feature, question, docs, RFC, small task) | [New issue](https://github.com/hamanakam1/el-hidratador/issues/new/choose) |
+| Discussion forms (introductions, ideas) | [Discussions](https://github.com/hamanakam1/el-hidratador/discussions) |
 | Discussions | [github.com/hamanakam1/el-hidratador/discussions](https://github.com/hamanakam1/el-hidratador/discussions) |
 | Wiki | [github.com/hamanakam1/el-hidratador/wiki](https://github.com/hamanakam1/el-hidratador/wiki) |
 | Roadmap | [docs/roadmap.md](docs/roadmap.md) and the `roadmap` label |
@@ -321,7 +323,9 @@ step-by-step version.
 | Security advisories | [SECURITY.md](SECURITY.md) |
 | Published documentation | [hamanakam1.github.io/el-hidratador](https://hamanakam1.github.io/el-hidratador/) |
 | Container image | `ghcr.io/hamanakam1/el-hidratador` |
+| Devcontainer | [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json) |
 | Citation metadata | [CITATION.cff](CITATION.cff) |
+| Build attestations and SBOM | attached to every release |
 
 ---
 

@@ -409,6 +409,26 @@ from a known state instead of inheriting a stale reservation.
 
 ---
 
+## Publishing the wiki
+
+The wiki pages live in `docs/wiki/` so they are reviewed like any other content.
+GitHub creates a repository's wiki git repository the first time a page is added from the web
+interface, so the first page has to be created there once:
+
+```bash
+# 1. Create the "Home" page in the browser:
+#    https://github.com/hamanakam1/el-hidratador/wiki/_new
+#
+# 2. Then publish the rest of the pages from the checkout:
+make wiki
+```
+
+`make wiki` clones the wiki repository, copies every page from `docs/wiki/`, commits, and pushes.
+Until the wiki repository exists, the script says so and exits with status 2 — it does not pretend
+to have published anything.
+
+---
+
 ## Housekeeping notes
 
 | Item | Detail |

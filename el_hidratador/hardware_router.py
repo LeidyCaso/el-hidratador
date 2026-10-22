@@ -46,6 +46,9 @@ class Target:
     healthy: bool = True
     power_ok: bool = True
     verified_until: float = 0.0
+    #: A physical target is a machine: its class constrains what it may run.
+    #: A declared profile is a capability: its class is derived, not a limit.
+    physical: bool = True
     note: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -57,6 +60,7 @@ class Target:
             "kinds": list(self.kinds),
             "healthy": self.healthy,
             "power_ok": self.power_ok,
+            "physical": self.physical,
             "verified_until": self.verified_until,
             "note": self.note,
         }
@@ -132,7 +136,7 @@ def evaluate(
             reasons.append("target is power constrained")
         if target.verified_until and target.verified_until <= moment:
             reasons.append("target declaration expired")
-        if target.class_name != desired:
+        if target.physical and target.class_name != desired:
             reasons.append(f"workload class is {desired}; target class is {target.class_name}")
         options.append(
             {

@@ -994,16 +994,49 @@ hidratador profile-list
 
 ### `route`
 
-Rank compute targets for a task.
+Rank the compute targets for a task. Eligibility is not authorization, and the command never
+authorizes anything.
+
+```bash
+hidratador route M-1001 --required-context 8000
+```
+
+The targets are the profiles the operator has declared with `profile-add`. When the ledger has no
+declared profile, the built-in local targets are used instead, and the `targets` key says which set
+was evaluated:
+
+```json
+{
+  "targets": "declared profiles",
+  "options": [
+    {
+      "target": "local-coder",
+      "class": "heavy",
+      "eligible": true,
+      "reasons": [],
+      "cost": "zero_incremental",
+      "context_limit": 64000,
+      "quality_estimate": null,
+      "provenance": "local declaration; no provider telemetry"
+    }
+  ],
+  "recommendation": "local-coder",
+  "execution_authorized": false,
+  "plan": {"dry_run": true, "execution_authorized": false}
+}
+```
+
+A declared profile is a capability, so the workload-class rule does not disqualify it: a profile
+declared with a large context limit is still eligible for a small task. The built-in targets are
+physical machines, and for them the class is a constraint — a micro-node is not offered heavy
+reasoning.
+
+A profile that costs money is never eligible. Cost is a hard gate, not a preference.
 
 | Flag | Type | Default | Effect |
 |------|------|---------|--------|
 | `id` (positional) | str | — | Task id. |
 | `--required-context` | int | `4096` | Context bytes the target must declare. Must be positive. |
-
-```bash
-hidratador route M-1001 --required-context 8000
-```
 
 ```json
 {

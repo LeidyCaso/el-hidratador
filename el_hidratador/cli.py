@@ -29,7 +29,15 @@ from .demo import demo_text, run_demo
 from .doctor import run_checks
 from .errors import AdapterError, HidratadorError, ValidationError
 from .github_sync import GitHubSync
-from .hardware_router import default_targets, dispatch_plan, evaluate, local_topology
+from .hardware_router import (
+    CLASS_HEAVY,
+    CLASS_LIGHT,
+    Target,
+    default_targets,
+    dispatch_plan,
+    evaluate,
+    local_topology,
+)
 from .replay import replay, replay_all
 from .sandbox import DEFAULT_IMAGE, apply_sandbox, boundary_report, build_sandbox, teardown_sandbox
 from .schema import all_schemas, schema_files, schema_for, validate_named
@@ -581,9 +589,29 @@ def _cmd_profile_add(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]
 
 def _cmd_route(args: argparse.Namespace, ledger: Ledger) -> dict[str, Any]:
     ticket = ledger.task(args.id)
-    targets = default_targets()
+    profiles = ledger.profiles()
+    if profiles:
+        # Declared profiles are the operator's own. They win over the built-in
+        # targets, because an operator who declared a profile meant it.
+        targets = [
+            Target(
+                id=profile.id,
+                class_name=CLASS_HEAVY if profile.context_limit >= 32000 else CLASS_LIGHT,
+                context_limit=profile.context_limit,
+                cost=profile.cost,
+                kinds=list(profile.kinds),
+                verified_until=profile.verified_until,
+                physical=False,
+            )
+            for profile in profiles
+        ]
+        source = "declared profiles"
+    else:
+        targets = default_targets()
+        source = "built-in targets; declare one with `hidratador profile-add` to route on it"
     result = evaluate(ticket, targets, args.required_context)
     payload = result.to_dict()
+    payload["targets"] = source
     payload["plan"] = dispatch_plan(result, args.id)
     return payload
 

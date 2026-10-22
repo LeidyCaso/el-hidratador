@@ -100,6 +100,27 @@ class HardwareRouterTests(unittest.TestCase):
         result = evaluate({"id": "M-1", "kind": "code"}, [target], 1024)
         self.assertFalse(result.options[0]["eligible"])
 
+    def test_a_declared_profile_is_not_bound_by_the_class_rule(self) -> None:
+        """A declared profile is a capability, not a machine."""
+        target = Target(
+            id="declared",
+            class_name=CLASS_HEAVY,
+            context_limit=64000,
+            cost="zero_incremental",
+            kinds=["code"],
+            physical=False,
+        )
+        result = evaluate({"id": "M-1", "kind": "code"}, [target], 1024)
+        self.assertTrue(result.options[0]["eligible"])
+        self.assertEqual(result.options[0]["reasons"], [])
+
+    def test_a_physical_target_is_bound_by_the_class_rule(self) -> None:
+        target = Target(
+            id="node", class_name=CLASS_HEAVY, cost="zero_incremental", kinds=["code"]
+        )
+        result = evaluate({"id": "M-1", "kind": "code"}, [target], 1024)
+        self.assertFalse(result.options[0]["eligible"])
+
     def test_matching_target_is_eligible_but_not_authorized(self) -> None:
         target = Target(id="node", class_name=CLASS_LIGHT, cost="zero_incremental", kinds=["code"])
         result = evaluate({"id": "M-1", "kind": "code"}, [target], 1024)

@@ -283,7 +283,9 @@ The plain-data description of a staging container: image, mounts, permissions, r
 dropped capabilities, and environment.
 
 In practice: it is produced by `build_sandbox()` as a dictionary with a `spec_hash`, so it can be
-reviewed and diffed before anything is created. `created` is `false` until a container exists.
+reviewed and diffed before anything is created. `created` is `false` until a container exists,
+and `sandbox-apply` prints the `docker run` argv rather than running it unless `--apply` is
+passed.
 
 ## Scope key
 

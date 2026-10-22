@@ -456,14 +456,7 @@ is Docker's failure, reported as an `AdapterError`.
 
 ```bash
 docker info
-```
-
-```python
-from el_hidratador.sandbox import apply_sandbox, build_sandbox
-
-spec = build_sandbox("M-1001", "/tmp/work/M-1001")
-print(apply_sandbox(spec))              # dry run: prints the argv, creates nothing
-print(apply_sandbox(spec, dry_run=False))
+hidratador sandbox-apply --id M-1001 --workdir /tmp/work/M-1001
 ```
 
 The dry run prints the exact command it would run, which you can paste into a terminal to see
@@ -474,6 +467,16 @@ the sandbox path must be absolute.
 ```bash
 mkdir -p /tmp/work/M-1001
 ls -ld /tmp/work/M-1001
+```
+
+The same thing is available in the library, which is where the specification itself comes from:
+
+```python
+from el_hidratador.sandbox import apply_sandbox, build_sandbox
+
+spec = build_sandbox("M-1001", "/tmp/work/M-1001")
+print(apply_sandbox(spec))              # dry run: prints the argv, creates nothing
+print(apply_sandbox(spec, dry_run=False))
 ```
 
 You do not need Docker at all. `build_sandbox()` returns the specification as plain data with a

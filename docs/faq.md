@@ -100,7 +100,8 @@ Everything except the sandbox adapter. The core, the CLI, the lifecycle, the pac
 manifest, and the handoff payload all run with no Docker present, and `doctor` reports a missing
 `docker` as a warning rather than a failure. The sandbox specification is pure data — image,
 mounts, limits, dropped capabilities — so you can review it and hand it to whatever runtime you
-do use. `apply_sandbox()` is the only function that shells out, and it defaults to a dry run.
+do use. `sandbox-apply` prints the `docker run` argv and creates nothing until you pass
+`--apply`, and `apply_sandbox()` in the library defaults to the same dry run.
 
 ## How do I publish to GitHub without double-posting?
 

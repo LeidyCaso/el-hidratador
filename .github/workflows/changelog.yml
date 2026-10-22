@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           changed="$(git diff --name-only "origin/${BASE_REF}...HEAD")"
-          if printf '%s\n' "${changed}" | grep -qx "CHANGELOG.md"; then
+          if printf "%s\n" "${changed}" | grep -qx "CHANGELOG.md"; then
             echo "updated=true" >> "$GITHUB_OUTPUT"
             echo "CHANGELOG.md is part of this pull request."
           else
@@ -57,7 +57,7 @@ jobs:
               echo
               echo "Changed files:"
               echo
-              printf '%s\n' "${changed}" | sed 's/^/- `/; s/$/`/'
+              printf "%s\n" "${changed}" | sed "s/^/- \`/; s/\$/\`/"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 

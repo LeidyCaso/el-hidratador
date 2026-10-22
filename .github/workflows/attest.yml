@@ -62,8 +62,10 @@ jobs:
             echo "the release assets are missing the source distribution or the wheel" >&2
             exit 1
           fi
-          echo "sdist=${sdist}" >> "$GITHUB_OUTPUT"
-          echo "wheel=${wheel}" >> "$GITHUB_OUTPUT"
+          {
+            echo "sdist=${sdist}"
+            echo "wheel=${wheel}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Attest the source distribution
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
